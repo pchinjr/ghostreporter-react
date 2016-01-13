@@ -1,59 +1,66 @@
-var rootURL = 'https://ghostreact.firebaseio.com/';
-
-var Form = React.createClass({
+var App = React.createClass({
+  getInitialState: function() {
+    return { ghosts: [] };
+  },
+  handleGhostSubmit: function(e) {
+    e.preventDefault();
+    this.setState({ghost: ghost});
+  },
   render: function() {
-    return <form className="form-group">
-      <div className="form-group">
-        <label className="col-sm-2 control-label">Ghost Name</label>
-          <div className="col-sm-10">
+    return <div>
+        <h1>All Ghost Sightings</h1>
+        <hr />
+        <GhostList ghosts={this.state.ghosts} />
+        <h1>Report A Ghost</h1>
+        <hr />
+        <GhostForm handleGhostSubmit={this.handleGhostSubmit} />
+      </div>
+  }
+});
+
+var GhostList = React.createClass({
+  render: function() {
+    return <div>
+      {Ghost}
+    </div>
+  }
+});
+
+var GhostForm = React.createClass({
+  getInitialState: function() {
+    return{ name: '' };
+  },
+  // handleSubmit: function(event) {
+  //   event.preventDefault();
+  //   var name = this.state.name;
+  //   this.props.onCommentSubmit({name: name});
+  // },
+  render: function() {
+    return <form className="form-group col-md-6" onSubmit={this.props.handleSubmit}>
+        <div className="form-group">
+            <label className=" control-label">Ghost Name</label>
             <input
               placeholder="Name"
-              type="text"
+              htmlFor="name"
               className="form-control" />
-          </div>
-      </div>
-      <div className="form-group">
-        <label className="col-sm-2 control-label">Description</label>
-          <div className="col-sm-10">
-            <input
-              placeholder="Description"
-              type="text"
-              className="form-control" />
-          </div>
-      </div>
-      <div className="form-group">
-        <label className="col-sm-2 control-label">Photo URL</label>
-          <div className="col-sm-10">
-            <input
-              placeholder="Photo URL"
-              type="text"
-              className="form-control" />
-          </div>
-      </div>
-      <div className="form-group">
-        <div className="col-sm-offset-2 col-sm-10">
-          <submit
+        </div>
+        <div className="form-group">
+          <button
             className="btn btn-default"
             type="submit">
             Report
-          </submit>
+          </button>
         </div>
-      </div>
     </form>
   }
 });
 
-var App = React.createClass({
-  getInitialState: function() {
-    return {
-      ghosts: {},
-    }
-  },
+var Ghost = React.createClass({
   render: function() {
-    return <div>
-        <Form ghostsStore={this.state.ghosts} />
-      </div>
+    return <li>
+      Slimer
+    </li>
   }
 });
-    
+
 ReactDOM.render( <App /> , document.getElementById('content') );
