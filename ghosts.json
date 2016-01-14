@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1452743665106,
+        "name": "Slimer",
+        "description": "is an ugly spud",
+        "photoUrl": "http://www.gbfans.com/images/store/669_590430871.jpg"
+    },
+    {
+        "id": 1452743709968,
+        "name": "The Scoleri Brothers",
+        "description": "disorder in the court",
+        "photoUrl": "http://www.gbfans.com/images/store/m/1056_1249780374.jpg"
+    },
+    {
+        "id": 1452743788808,
+        "name": "The Librarian",
+        "description": "Just wants to be quiet",
+        "photoUrl": "http://vignette2.wikia.nocookie.net/ghostbusters/images/b/ba/Librarian_Scare.jpg/revision/20091224191223"
+    },
+    {
+        "id": 1452747384465,
+        "name": "Ghost Runner",
+        "description": "He creeps me out",
+        "photoUrl": "http://img4.wikia.nocookie.net/__cb20101208195309/creepypasta/images/6/62/GhostRunner.jpg"
+    }
+]
