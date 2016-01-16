@@ -1,54 +1,29 @@
 var App = React.createClass({
-  loadGhostsFromServer: function() {
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      cache: false,
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  handleGhostSubmit: function(ghost) {
-    var ghosts = this.state.data;
-    ghost.id = Date.now();
-    var newGhosts = ghosts.concat([ghost]);
-    this.setState({data: newGhosts});
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      type: 'POST',
-      data: ghost,
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        // this.setState({data: comments});
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
+  mixins: [ReactFireMixin],
+  
   getInitialState: function() {
-    return { data: [] };
+    return { 
+      ghosts: {}
+    };
   },
-  componentDidMount: function() {
-    this.loadGhostsFromServer();
+  
+  componentWillMount: function() {
+    var firebaseRef = new Firebase('https://ghostreact.firebaseio.com/ghosts/');
+    this.bindAsObject(firebaseRef, 'ghosts');
   },
+  
   render: function() {
     return (
       <div>
         <div className="col-md-9">
           <h1>All Ghost Sightings</h1>
             <hr />
-          <GhostList data={this.state.data} />
+          <GhostList ghosts={this.state.ghosts} />
         </div>
         <div className="col-md-3">
           <h1>Report A Ghost</h1>
             <hr />
-          <GhostForm onGhostSubmit={this.handleGhostSubmit} />
+          <GhostForm ghostsStore={this.firebaseRefs.ghosts} />
         </div>
       </div>
     )
@@ -57,95 +32,51 @@ var App = React.createClass({
 
 var GhostList = React.createClass({
   render: function() {
-    var ghostNodes = this.props.data.map(function(ghost) {
-      return (
-        <Ghost
-          name={ghost.name}
-          key={ghost.id}
-          description={ghost.description}
-          photoUrl={ghost.photoUrl} />
-      );
-    });
-    return(
-      <div className="row">
-        {ghostNodes}
-      </div>
-    );
-  }
-});
-
-var GhostForm = React.createClass({
-  getInitialState: function() {
-    return { name: '', description: '', photoUrl: '' };
+    console.log(this.props.ghosts);
+    return <div className="row">
+      <Ghost
+        name={'Slimer'}
+        description={'spud'}
+        photo={'//cageme.herokuapp.com/300/300'}
+        />
+        
+    </div>
   },
-  handleNameChange: function(e) {
-    this.setState({name: e.target.value});
-  },
-  handleDescriptionChange: function(e) {
-    this.setState({description: e.target.value});
-  },
-  handlePhotoUrlChange: function(e) {
-    this.setState({photoUrl: e.target.value});
-  },
-  handleSubmit: function(e) {
-    e.preventDefault();
-    var name = this.state.name.trim();
-    var description = this.state.description.trim();
-    var photoUrl = this.state.photoUrl.trim();
-    this.props.onGhostSubmit({name: name, description: description, photoUrl: photoUrl});
-    this.setState({name: '', description: '', photoUrl: ''});
-  },
-  render: function() {
-    return (
-      <form className="form-group col-md-6" onSubmit={this.handleSubmit}>
-        <div className="form-group">
-            <label className=" control-label">Ghost Name</label>
-            <input
-              type="text"
-              placeholder="Name"
-              value={this.state.name}
-              onChange={this.handleNameChange}
-              className="form-control"
-              required />
-        </div>
-        <div className="form-group">
-            <label className=" control-label">Description</label>
-            <input
-              type="text"
-              placeholder="Description"
-              value={this.state.description}
-              onChange={this.handleDescriptionChange}
-              className="form-control"
-              required />
-        </div>
-        <div className="form-group">
-            <label className=" control-label">Photo URL</label>
-            <input
-              type="text"
-              placeholder="Photo URL"
-              value={this.state.photoUrl}
-              onChange={this.handlePhotoUrlChange}
-              className="form-control" />
-        </div>
-        <div className="form-group">
-          <button
-            value="Post"
-            className="btn btn-default"
-            type="submit">
-            Report
-          </button>
-        </div>
-    </form>
-    );
-  }
+  // renderList: function() {
+  //   var children = [];
+    
+  //     for(var index in this.props.ghosts) {
+  //       var ghost = this.props.ghosts[index];
+  //       ghost.index = index;
+  //       children.push(
+  //         <Ghost
+  //           name={ghost.name}
+  //           key={ghost.index}
+  //           description={ghost.description}
+  //           photo={ghost.photo}
+  //         />
+  //         )
+  //     }
+  //       return children;
+  //     }
 });
 
 var Ghost = React.createClass({
+  // getInitialState: function() {
+  //   return {
+  //     name: this.props.ghost.name,
+  //     description: this.props.ghost.description,
+  //     photo: this.props.ghost.photo,
+  //   }
+  // },
+  // componentWillMount: function() {
+  //   this.fb = new Firebase('https://ghostreact.firebaseio.com/ghosts/' + this.props.ghost.index);
+  // },
   render: function() {
     return (
       <div className="col-md-3">
         <div className="thumbnail">
-          <img src={this.props.photoUrl} />
+          <img src={this.props.photo} />
             <div className="caption">
               <h3>{this.props.name}</h3>
               <p>{this.props.description}</p>
@@ -156,4 +87,75 @@ var Ghost = React.createClass({
   }
 });
 
-ReactDOM.render( <App url="/api/ghosts"/> , document.getElementById('content') );
+var GhostForm = React.createClass({
+  getInitialState: function() {
+    return { 
+      name: '', 
+      description: '', 
+      photo: '' 
+    };
+  },
+  handleInputChange: function(key) {
+    return function(event) {
+      var state = {};
+      state[key] = event.target.value;
+      this.setState(state);
+    }.bind(this);
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    this.props.ghostsStore.push({
+      name: this.state.name,
+      description: this.state.description,
+      photo: this.state.photo,
+      done: false
+    });
+    this.setState({name: "", description: "", photo: ""});
+  },
+  render: function() {
+    return (
+      <form className="form-group col-md-6" onSubmit={this.handleSubmit}>
+        <div className="form-group">
+            <label className=" control-label">Ghost Name</label>
+            <input
+              type="text"
+              placeholder="Name"
+              value={this.state.name}
+              onChange={this.handleInputChange('name')}
+              className="form-control"
+              required />
+        </div>
+        <div className="form-group">
+            <label className=" control-label">Description</label>
+            <input
+              type="text"
+              placeholder="Description"
+              value={this.state.description}
+              onChange={this.handleInputChange('description')}
+              className="form-control"
+              required />
+        </div>
+        <div className="form-group">
+            <label className=" control-label">Photo URL</label>
+            <input
+              type="text"
+              placeholder="Photo URL"
+              value={this.state.photo}
+              onChange={this.handleInputChange('photo')}
+              className="form-control" />
+        </div>
+        <div className="form-group">
+          <button
+            className="btn btn-default"
+            type="submit">
+            Report
+          </button>
+        </div>
+    </form>
+    );
+  }
+});
+
+
+
+ReactDOM.render( <App /> , document.getElementById('content') );
