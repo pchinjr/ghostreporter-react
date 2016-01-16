@@ -1,5 +1,5 @@
 var App = React.createClass({
-  loadCommentsFromServer: function() {
+  loadGhostsFromServer: function() {
     $.ajax({
       url: this.props.url,
       dataType: 'json',
@@ -35,21 +35,23 @@ var App = React.createClass({
     return { data: [] };
   },
   componentDidMount: function() {
-    this.loadCommentsFromServer();
+    this.loadGhostsFromServer();
   },
   render: function() {
-    return <div>
+    return (
+      <div>
         <div className="col-md-9">
-        <h1>All Ghost Sightings</h1>
-        <hr />
-        <GhostList data={this.state.data} />
+          <h1>All Ghost Sightings</h1>
+            <hr />
+          <GhostList data={this.state.data} />
         </div>
         <div className="col-md-3">
-        <h1>Report A Ghost</h1>
-        <hr />
-        <GhostForm onGhostSubmit={this.handleGhostSubmit} />
+          <h1>Report A Ghost</h1>
+            <hr />
+          <GhostForm onGhostSubmit={this.handleGhostSubmit} />
         </div>
       </div>
+    )
   }
 });
 
