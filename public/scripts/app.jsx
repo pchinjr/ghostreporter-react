@@ -53,7 +53,7 @@ var Ghost = React.createClass({
     return (
       <div className="col-md-3">
         <div className="thumbnail">
-          <img src={this.props.photo} />
+          <img src={this.checkPhoto()} />
             <div className="caption">
               <h3>{this.props.name}</h3>
               <p>{this.props.description}</p>
@@ -61,6 +61,13 @@ var Ghost = React.createClass({
         </div>
       </div>
     );
+  },
+  checkPhoto: function() {
+    if(this.props.photo === "") {
+      return "http://www.nerdist.com/wp-content/uploads/2010/06/ghostbusters_logo-1-338x300.jpg";
+    } else {
+      return this.props.photo;
+    }
   }
 });
 
