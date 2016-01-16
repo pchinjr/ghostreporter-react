@@ -1,15 +1,18 @@
 var App = React.createClass({
   mixins: [ReactFireMixin],
   
+  handleGhostSubmit: function(ghost) {
+    this.firebaseRefs["data"].push(ghost);
+  },
   getInitialState: function() {
     return { 
-      ghosts: {}
+      data: []
     };
   },
   
   componentWillMount: function() {
-    var firebaseRef = new Firebase('https://ghostreact.firebaseio.com/ghosts/');
-    this.bindAsObject(firebaseRef, 'ghosts');
+    var firebaseRef = new Firebase('https://ghostreact.firebaseio.com/ghosts');
+    this.bindAsArray(firebaseRef, 'data');
   },
   
   render: function() {
@@ -18,60 +21,34 @@ var App = React.createClass({
         <div className="col-md-9">
           <h1>All Ghost Sightings</h1>
             <hr />
-          <GhostList ghosts={this.state.ghosts} />
+          <GhostList ghosts={this.state.data} />
         </div>
         <div className="col-md-3">
           <h1>Report A Ghost</h1>
             <hr />
-          <GhostForm ghostsStore={this.firebaseRefs.ghosts} />
+          <GhostForm onGhostSubmit={this.handleGhostSubmit} />
         </div>
       </div>
-    )
+    );
   }
 });
 
 var GhostList = React.createClass({
   render: function() {
-    console.log(this.props.ghosts);
-    return <div className="row">
-      <Ghost
-        name={'Slimer'}
-        description={'spud'}
-        photo={'//cageme.herokuapp.com/300/300'}
-        />
-        
-    </div>
-  },
-  // renderList: function() {
-  //   var children = [];
-    
-  //     for(var index in this.props.ghosts) {
-  //       var ghost = this.props.ghosts[index];
-  //       ghost.index = index;
-  //       children.push(
-  //         <Ghost
-  //           name={ghost.name}
-  //           key={ghost.index}
-  //           description={ghost.description}
-  //           photo={ghost.photo}
-  //         />
-  //         )
-  //     }
-  //       return children;
-  //     }
+    var ghostNodes = this.props.ghosts.map(function (ghost, index) {
+      return (
+        <Ghost
+          name={ghost.name}
+          key={index}
+          description={ghost.description}
+          photo={ghost.photo} />
+      );
+    });
+    return <div className="row">{ghostNodes}</div>;
+  }
 });
 
 var Ghost = React.createClass({
-  // getInitialState: function() {
-  //   return {
-  //     name: this.props.ghost.name,
-  //     description: this.props.ghost.description,
-  //     photo: this.props.ghost.photo,
-  //   }
-  // },
-  // componentWillMount: function() {
-  //   this.fb = new Firebase('https://ghostreact.firebaseio.com/ghosts/' + this.props.ghost.index);
-  // },
   render: function() {
     return (
       <div className="col-md-3">
@@ -83,7 +60,7 @@ var Ghost = React.createClass({
             </div>
         </div>
       </div>
-    )
+    );
   }
 });
 
@@ -104,7 +81,7 @@ var GhostForm = React.createClass({
   },
   handleSubmit: function(e) {
     e.preventDefault();
-    this.props.ghostsStore.push({
+    this.props.onGhostSubmit({
       name: this.state.name,
       description: this.state.description,
       photo: this.state.photo,
