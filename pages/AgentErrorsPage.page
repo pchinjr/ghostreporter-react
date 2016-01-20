@@ -1,0 +1,49 @@
+<apex:page >
+    
+    <style>
+        
+    .custom-item {
+        position: relative;
+        min-height: 30px;
+    }
+    
+    .custom-item .product-name  {
+        display: inline-block;
+        margin-left: 45px;
+        text-indent: 0;
+    }
+            
+    .custom-item > img {
+        left: 1px;
+        position: absolute;
+        top: 50%;
+        margin-top: -15px;
+    }
+    
+    .current-value {
+        padding: 10px 0;
+    }
+    
+    .current-value > span {
+        font-weight: bold;
+    }
+        
+    </style>
+    
+    <vs:importvisualstrap />
+    <div id="form">
+		<div class="dx-fieldset">
+			<div class="dx-field">
+				<div class="dx-field-label">Default mode</div>
+				<div class="dx-field-value"><div id="products-simple"></div></div>
+			</div>
+        </div>
+	</div>
+    
+    <script>
+    	var productsWidget = $("#products-simple").dxSelectBox({
+            items: simpleProducts
+        }).dxSelectBox("instance");
+    </script>
+    
+</apex:page>

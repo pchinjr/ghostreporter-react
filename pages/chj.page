@@ -1,0 +1,14 @@
+<apex:page controller="R_ChartController2">
+<apex:chart data="{!Data}" height="400" width="500">
+    <apex:legend position="left"/>
+    <apex:axis type="Numeric" position="left" title="Closed Won" grid="true"
+        fields="{fields}" dashSize="2">
+        <apex:chartLabel />
+    </apex:axis>
+    <apex:axis type="Category" position="bottom" fields="name" title="Stacked Bars">
+        <apex:chartLabel rotate="315"/>
+    </apex:axis>
+    <apex:barSeries orientation="vertical" axis="left" stacked="true"
+        xField="name" yField="{fields}" title="rsdf"/>
+</apex:chart>
+</apex:page>

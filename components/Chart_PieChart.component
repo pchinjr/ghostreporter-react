@@ -1,0 +1,16 @@
+<!-- Component holding visual force pie chart -->
+<apex:component >
+	<apex:attribute name="data" description="The ChartDataWrapper being used"
+        type="ChartData[]" required="true" />
+    <apex:attribute name="bottomTitle" default="Categories" type="String"
+        required="false" description="Title for left side of chart"/>
+    <apex:attribute name="leftTitle" default="Data" type="String" 
+        required="false" description="Title for right side of chart"/>
+	<apex:chart data="{!data}" animate="true" height="400" width="500">
+		<apex:legend position="left" />
+		<apex:pieSeries labelField="categoryName" dataField="value" >
+			<apex:chartLabel display="middle" orientation="vertical"
+			 font="bold 18px Helvetica" />
+		</apex:pieSeries>
+	</apex:chart>
+</apex:component>

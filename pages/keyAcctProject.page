@@ -1,0 +1,14 @@
+<apex:page standardController="Account" sidebar="false" showHeader="false">
+  <!-- Begin Default Content REMOVE THIS -->
+  <h1>Congratulations</h1>
+  This is your new Page: keyAcctProject
+  <!-- End Default Content REMOVE THIS -->
+ <apex:form >
+   <apex:pageBlock title="Project Info" id="thePageBlock" mode="view">  
+     <apex:pageBlockSection title="Project details" columns="1">
+       <apex:inputField value="{!Account.Account_Type__c}"/>
+       <apex:inputField value="{!Account.Department__c}"/>
+     </apex:pageBlockSection>
+   </apex:pageBlock>
+ </apex:form> 
+</apex:page>

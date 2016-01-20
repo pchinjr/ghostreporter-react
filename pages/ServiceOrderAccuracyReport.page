@@ -1,0 +1,201 @@
+<apex:page showHeader="true" sidebar="true" 
+	controller="ServiceOrderAccuracyReportController" docType="html-5.0">
+
+	<apex:stylesheet value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/css/bootstrap.css')}"   />
+
+	<style type="text/css">
+		.ct {
+			text-align: center;
+		}
+
+		.header {
+			text-align: center;
+			background-color: #BAB8B8;
+				 width: 100%; margin: 0; float: none;
+		}
+		.col {
+			width: 20px;
+		}
+@media print {
+  * {
+    color: #000 !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+	 
+	</style>
+
+	<apex:sectionHeader title="Service Order Reports" 
+		subtitle="Print Service Order Reports" />
+	<apex:pageBlock title="Print Reports" id="mainBlock">
+		<apex:form id="mainForm">
+			<apex:pageBlockSection title="Select date and print" columns="1">
+				<apex:input styleClass="cssbody" value="{!m_date}" type="auto"/>
+				<apex:panelGrid columns="3">
+				<apex:commandButton value="Comm" action="{!comm}" 
+					reRender="report"/>
+				<apex:commandButton value="Resd" action="{!resd}"
+					reRender="report"/>
+				<apex:commandButton value="Cont" action="{!cont}"
+					reRender="report"/>
+				</apex:panelGrid>
+			</apex:pageBlockSection>
+			<apex:pageBlockSection title="Report" id="report" columns="1">
+
+				<apex:dataTable id="reportTable" value="{!data}" var="agent"
+					rendered="{!m_isReportRun}" styleClass="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped" 
+					columnsWidth="20%,6%,6%,6%,6%,6%,6%,6%,6%,
+					6%,6%,6%,6%,6%"  >
+                     
+                    <div id = "agent">
+					<apex:column >
+						<apex:outputText value="{!IF(agent.isHeader, 'Agent', 
+							IF(agent.isSummary, 'TOTALS', agent.agentName))}"/>
+					</apex:column>
+					</div>
+					
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'DEPOSIT ERROR', agent.dep)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'WRONG SA', agent.wrongSa)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'SAT/SUN HOLIDAY', agent.satSun)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct" headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'ATO', agent.ato)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'NO CONNECT CHARGE', agent.noConn)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'SELECTED TOO MANY SAS', agent.sas)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'MAILING ADDRESS', agent.mail)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct" 
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'FA MISC', agent.fa)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'ALL SAS NOT SELECT', agent.allSas)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct"
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'PAY PLAN ERROR', agent.payPlan)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct" headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'MISC', agent.misc)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct" 
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'WRONG ADDRESS', agent.wrongAdd)}"/>
+					</apex:column>
+
+					<apex:column styleClass="ct" 
+						headerClass="header">
+						<apex:outputText value="{!IF(agent.isHeader, 'Totals', agent.tot)}"/>
+					</apex:column>
+				</apex:dataTable>
+
+				<apex:outputLabel rendered="{!!m_isReportRun}" value="No Results"/>
+				<br></br>
+				<apex:commandButton value="Print" 
+					onclick="printReport('{!m_agentType}', '{!m_month}', 
+										  '{!m_year}'); return false;" 
+					rendered="{!m_isReportRun}"/>
+			</apex:pageBlockSection>
+		</apex:form>
+	</apex:pageBlock>
+
+
+	<script type="text/javascript">
+		function printReport(type, month, year) {
+			var originalContents = document.body.innerHTML;
+           
+			// Get the dataTable
+			var table = document.getElementById("{!$Component.mainBlock.mainForm.report.reportTable}");
+		 
+ 
+			
+			table.style.tableLayout = 'auto';
+			table.style.textAlign = 'center';
+			var ths = table.getElementsByTagName("tr");
+			console.log("ths length", ths.length);
+			//Headers...
+			for (var i = 0; i < ths.length; i++) {
+				console.log(ths[i].innerHTML);
+				// Get div 
+				var divs = ths[i].getElementsByTagName("div");
+			    ths[0].cells[0].style.textAlign = 'center';
+			    ths[i].cells[0].style.textAlign = 'right';
+			    ths[0].style.fontWeight = 'bold';
+			    
+				for (var j = 0; j < divs.length; j++) {
+				     
+					divs[j].style.fontSize = '2pt';
+			 
+					divs[j].style.height = '20px';
+					divs[j].style.maxWidth = '12px';
+					divs[j].style.width = '12px';
+						divs[j].style.margin = '0';
+					divs[j].style.wordWrap = 'break-word';
+			 
+              
+
+				}
+				console.log('after', ths[i].innerHTML);
+			}
+			// Div to hold everything
+			var newDiv = document.createElement('div');
+			
+			// Header Title
+			var header = document.createElement('h1');
+			header.innerHTML = 'Service Order Accuracy - '+type;
+			header.style.color = 'blue';
+
+			// Header subtitle
+			var subHeader = document.createElement('h4');
+			subHeader.innerHTML = '<br></br>Processing by Month: '+
+				month+' '+year;
+			//subHeader.style.color = '0x72DAFC';
+			// standard break
+			var br = document.createElement('br');
+
+			newDiv.appendChild(header);
+			newDiv.appendChild(subHeader);
+			newDiv.appendChild(table);
+
+			document.body.innerHTML = newDiv.innerHTML;
+			document.body.style.backgroundColor = 'white';
+
+			window.print();
+
+			document.body.innerHTML = originalContents;
+
+		}
+	</script>
+
+
+</apex:page>

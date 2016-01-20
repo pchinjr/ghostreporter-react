@@ -1,0 +1,103 @@
+<apex:page controller="agentController">
+ 
+
+    <style>
+   
+
+
+    </style>
+    
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+          google.load("visualization", "1", {packages:["table"]});
+          google.setOnLoadCallback(drawTable);
+   		
+          function drawTable() {
+			 
+              //var teamName = {!agentTeam};
+              var teamName = 'Not Working';
+			  var testInt = {!testInt2};
+              
+              var Contacts_Per_Day = {!Contacts_Per_Day};
+              var Average_Call_Handle_Time = {!Average_Call_Handle_Time};
+              var Hold_Time_Percent = {!Hold_Time_Percent};
+              var Call_Over_7_Minutes_Percent = {!Call_Over_7_Minutes_Percent};
+              var Quality_Score_BPA = {!Quality_Score_BPA};
+              var Quality_Error_Rate = {!Quality_Error_Rate};
+              var Schedule_Adherence_Percent = {!Schedule_Adherence_Percent};
+              var Other_Time = {!Other_Time};
+              var Communication_with_Sup = {!Communication_with_Sup};
+              var Teamwork = {!Teamwork};
+              var Dependability = {!Dependability};
+              var Follow_up_time_percent = {!Follow_up_time_percent};
+              var Job_Knowledge = {!Job_Knowledge};
+              var Resource_Management = {!Resource_Management};
+              var Total_Points = {!Total_Points};            
+              
+              
+              var data = new google.visualization.DataTable();
+              
+        	data.addColumn('string', 'Category');
+        	data.addColumn('number', 'Weight');
+        	data.addColumn('number', 'Score');
+        	data.addRows([
+          		['Contacts Per Day Handled (CPD)',  10, Contacts_Per_Day],
+          		['Average Handle Times (seconds, m:ss)',   10,  Average_Call_Handle_Time],
+          		['Hold Time (% time, Minues Per Day)', 10, Hold_Time_Percent],
+          		['Calls Over 7 minutes (% of calls, Based on 90 CPD total)',   5,  Call_Over_7_Minutes_Percent],
+                ['Quality (BPA % score)',  10, Quality_Score_BPA],
+          		['Quality (Error Rate - % score)',   10,  Quality_Error_Rate],
+          		['Schedule Adherence (WFM % score)', 5, Schedule_Adherence_Percent],
+          		['Other time (Minutes Per Day)',   5,  Other_Time],
+                ['Communication with Supervisor & Team Members',  5, Communication_with_Sup],
+          		['Teamwork',   5,  Teamwork],
+          		['Dependability', 5, Dependability],
+          		['Follow-up time (% of Time, Minutes Per Day)',   10,  Follow_up_time_percent],
+                ['Job Knowledge',  10, Job_Knowledge],
+          		['Resource Management',   5,  Resource_Management],
+          		['Total Points',   5,  Total_Points]	
+        	]);
+               
+              
+              
+              // data.setCell(0, 2, ({!testInt}).toString());
+
+        	var table = new google.visualization.Table(document.getElementById('table_div'));
+            data.getValue(0, 2);
+
+        	table.draw(data, {showRowNumber: false}, { allowHtml: true});
+
+              
+          }
+    
+    
+
+        </script>
+	
+<!-- <div>
+    	<apex:enhancedList height="300" type="Agent__C" rowsPerPage="10" id="agentList" />
+    </div> -->
+	<div>
+        
+        <apex:form >
+            <apex:selectList value="{!selectedVal}" size="1"  > 
+                <apex:actionSupport event="onchange" action="{!putAgentStats}"/>
+   	 			<apex:selectOptions value="{!AgentsList}" /> 
+			</apex:selectList>
+        </apex:form>
+        
+    </div>   
+	<div>
+        <apex:form >
+            <apex:selectList value="{!dateValue}" size="1"  > 
+                <apex:actionSupport event="onchange" action="{!putAgentStats}"/>
+   	 			<apex:selectOptions value="{!DateList}" /> 
+			</apex:selectList>
+        </apex:form>
+    </div>
+
+
+    
+   <div id = "table_div"></div>
+    
+</apex:page>

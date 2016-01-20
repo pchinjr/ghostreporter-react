@@ -1,0 +1,31 @@
+<apex:page showHeader="true" sidebar="true" standardController="Case" 
+    extensions="CaseCloseController">
+    <apex:sectionHeader title="Case" subtitle="Close Case" />
+    <apex:form >
+        <apex:pageBlock title="Case Edit">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save" action="{!save}"/>
+                <apex:commandButton value="Cancel" action="{!cancel}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="Case Information" columns="1">
+                <apex:inputField value="{!relatedCase.Status}" label="Status"/>
+                <apex:inputField value="{!relatedCase.Status_Reason__c}" 
+                    label="Staus Reason" />
+                <apex:inputField id="case_reason" 
+                    value="{!relatedCase.Reason}" />
+                <!-- Put apex:include CRTEmailPage here -->
+                <!-- <apex:iframe src="{!emaiPage}" /> -->
+                <apex:outputField value="{!relatedCase.AccountId}" 
+                    label="Account Id" />
+                <apex:inputField value="{!relatedCase.Customer_Name__c}" />
+                <apex:inputTextarea cols="50" rows="10" value="{!relatedCase.closingComment__c}" 
+                    label="Internal Comments"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+    <apex:include pageName="{!$Page.CRTEmailPage}?isClosing=true&related_case={!relatedCase.CaseNumber}&returnURL={!currentPage}" />
+    <!-- <c:EmailPage ret="{!retURL}" related="{!relatedCase.CaseNumber}" 
+        title="Send Summary Email"/> -->
+
+</apex:page>

@@ -1,0 +1,32 @@
+<apex:page controller="WrapperExampleController" tabstyle="Account">
+  <apex:pageBlock title="PageBlockTable">
+     <apex:pageBlockTable value="{!accounts}" var="account">
+       <apex:column value="{!account.name}"/>
+       <apex:column value="{!account.BillingStreet}"/>
+       <apex:column value="{!account.BillingCity}"/>
+       <apex:column value="{!account.BillingPostalCode}"/>
+     </apex:pageBlockTable>
+  </apex:pageBlock>
+  <br/>
+  <br/>
+  <apex:pageBlock title="Wrapper Table">
+  <table class="list" border="0" cellpadding="0" cellspacing="0">
+    <tr class="headerRow  ">
+      <apex:repeat value="{!headWrap.values}" var="heading">
+        <th class="headerRow ">
+           {!heading}
+        </th>
+      </apex:repeat>
+    </tr>
+    <apex:repeat value="{!rowWrappers}" var="row">
+       <tr>
+         <apex:repeat value="{!row.values}" var="value">
+           <td>
+             {!value}
+           </td>
+         </apex:repeat>
+       </tr>
+    </apex:repeat>
+  </table>
+  </apex:pageBlock>
+</apex:page>

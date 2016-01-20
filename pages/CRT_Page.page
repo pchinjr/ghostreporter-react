@@ -1,0 +1,30 @@
+<apex:page standardController="ProActive__c">>
+  <!-- Begin Default Content REMOVE THIS -->
+ 
+  <apex:detail />
+
+<apex:pageBlock title="Case Mangement">
+  <apex:pageBlockSection title="CRT Cases">
+
+<apex:page id="thePage">
+    <apex:tabPanel switchType="client" selectedTab="name2" id="theTabPanel">
+        <apex:tab label="New Cases" name="name1" id="tabOne">
+        
+   
+       
+ 
+        
+        </apex:tab>
+        <apex:tab label="Aging" name="name2" id="tabTwo">content for tab two</apex:tab>
+    </apex:tabPanel>
+</apex:page>
+
+</apex:pageBlockSection>
+</apex:pageBlock>
+  <apex:pageBlock title="Analytics">
+<apex:pageBlockSection title="CRT Analytics">
+Aging CRT Cases
+</apex:pageBlockSection>
+ </apex:pageBlock> 
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

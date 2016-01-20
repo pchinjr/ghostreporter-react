@@ -1,0 +1,5 @@
+<apex:page standardController="ProActive__c">
+
+ 
+  <apex:detail />
+</apex:page>

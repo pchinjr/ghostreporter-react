@@ -1,0 +1,4 @@
+<apex:page controller="Billing_Proto_Controller"  action="{!retrieveData}"
+    contentType="application/x-JavaScript; charset=utf-8" showHeader="false" standardStylesheets="false" sidebar="false">
+{!JSONString}
+</apex:page>

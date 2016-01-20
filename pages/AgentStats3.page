@@ -1,0 +1,1313 @@
+<apex:page controller="agentController"  id="page1" readOnly="false" sidebar="false">
+ 
+ 
+<!--
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"/>
+-->
+
+
+<apex:stylesheet value="{!URLFOR($Resource.BootstrapCSS334)}" /> 
+
+<apex:stylesheet value="{!URLFOR($Resource.BootstrapJS334)}" /> 
+
+<!-- for making pdf -->
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'dist/jspdf.min.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'examples/js/jquery/jquery-1.7.1.min.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'examples/js/jquery/jquery-ui-1.8.17.custom.min.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jspdf_debug)}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'examples/js/basic.js')}" />
+
+
+<style>
+.well1{
+    background-color:'#33CC33';
+}    
+
+.no-gutter > [class*='col-'] {
+    padding-right:50px;
+    padding-left:50px;
+    
+}
+
+.saveButton {
+    width:500px;
+    padding-bottom:30px;
+}
+    
+</style> 
+
+
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui10, '/jquery-ui-1.10.4.custom/js/jquery-1.10.2.js')}" />    
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui10, '/jquery-ui-1.10.4.custom/js/jquery-ui-1.10.4.min.js')}" />
+    
+   <!-- <apex:includeScript value="{!URLFOR($Resource.D3, '/d3.js')}" /> -->
+    <apex:styleSheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/knockout-2.2.1.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/globalize.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/dx.chartjs.js')}" />
+
+
+    
+    <script>
+    //PDF script
+    function test( ) {
+        alert("Inside PDF");
+        var doc = new jsPDF();
+
+        // We'll make our own renderer to skip this editor
+        var specialElementHandlers = {
+        	'#editor': function(element, renderer){
+        		return true;
+        	}
+        };
+            
+        // All units are in the set measurement for the document
+        // This can be changed to "pt" (points), "mm" (Default), "cm", "in"
+        doc.fromHTML($('#yearly_table').get(0), 15, 15, {
+        	'width': 500, 
+        	'elementHandlers': specialElementHandlers
+        });
+        
+        doc.fromHTML($('#total_table').get(0), 15, 15, {
+        	'width': 500, 
+        	'elementHandlers': specialElementHandlers
+        });
+        
+        doc.save('dataurl.pdf');
+    }
+    
+    
+    
+    
+    
+    var j$ = jQuery.noConflict();
+    var unSatColor = "#F44336"; 
+    var nIColor = "#FFEB3B"; 
+    var goodColor = "#9C27B0"; 
+    var supColor = "#2196F3"; 
+    var outStandColor = "#4CAF50";
+
+    function scaleValue(maxValue, minValue, actValue) {
+        if (actValue > maxValue) {
+            return maxValue + ((actValue - maxValue) *0.1);
+        } else if (actValue < minValue) {
+            return minValue - ((minValue - actValue) *0.1);
+        } else {
+            return actValue;
+        }
+    }
+
+
+    //On Page load
+    j$(function() {
+        
+        //List in filled in controller in order: 0 QBPA, 1 CPD, 2 ACHT, 3 HT, 4 CO7M, 5 QERR, 6 SA, 7 FUT
+        createBulletCPD('OverallContainer', 'Contacts Per Day Handled(CPD)', '33', scaleValue(100, 70, {!curCPD}), scaleValue(100, 70, {!prevCPD}) );
+        createBulletAHT('AHTContainer', 'Average Handle Time (Seconds, m:ss)', '33', scaleValue(275, 235, {!curAHT}), scaleValue(275, 235, {!prevAHT}));
+        createBulletHold('HoldContainer', 'Hold Time(% time, minutes per day)', '33', scaleValue(10, 5, {!curHT}), scaleValue(10, 5, {!prevHT}));
+        createBulletSevenPlus('SevenPlusContainer', 'Calls Over 7 Minutes(% of calls, Based on 85 CPD)', '33',scaleValue(18, 11, {!curCO7M}), scaleValue(18, 11, {!prevCO7M}));
+        createBulletBPA('BPAContainer', 'Quality (BPA % score)', '33', scaleValue(90, 70, {!curQBPA}), scaleValue(90, 70, {!prevQBPA}));
+        createBulletBPA('ErrorContainer', 'Quality (Error Rate - % score)', '33', scaleValue(90, 70, {!curQERR}), scaleValue(90, 70, {!prevQERR}));
+        createScheduleAdherance('AdheranceContainer', 'Schedule Adherance (WFM % score)', '33', scaleValue(100, 86, {!curSA}), scaleValue(100, 86, {!prevSA}));
+        createFollowUp('FollowUpContainer', 'Follow-up time(% of Time, Minutes Per Day)', '33', scaleValue(10, 3, {!curFUT}), scaleValue(10, 3, {!prevFUT}));
+    });
+    
+       function createFollowUp(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 11,
+                endValue: 3,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [3,5, 6,  9, 10 ],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 11,
+                        endValue: 10,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 10,
+                        endValue: 9,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 9,
+                        endValue: 6,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 6,
+                        endValue: 5,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 5,
+                        endValue: 3,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+    
+     function createScheduleAdherance(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 84,
+                endValue: 100,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [100, 96, 93, 90, 86],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 84,
+                        endValue: 86,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 86,
+                        endValue: 90,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 90,
+                        endValue: 93,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 93,
+                        endValue: 96,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 96,
+                        endValue: 100,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+    
+    function createBulletError(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0.3,
+                endValue: 1.5,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [ 0.5, 0.75, 1, 1.25],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 1.50,
+                        endValue: 1.25 ,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 1.25,
+                        endValue: 1,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 1,
+                        endValue: 0.75,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 0.75,
+                        endValue: 0.5,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 0.5,
+                        endValue: 0.3,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+    
+     function createBulletBPA(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 65,
+                endValue: 100,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [ 70, 75, 85,90,100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 65,
+                        endValue: 70 ,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 70,
+                        endValue: 75,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 75,
+                        endValue: 85,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 85,
+                        endValue: 90,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 90,
+                        endValue: 100,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+    
+     function createBulletSevenPlus(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 20,
+                endValue: 8,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [ 18, 16, 14, 11],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 20,
+                        endValue: 18,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 18,
+                        endValue: 16,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 16,
+                        endValue: 14,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 14,
+                        endValue: 11,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 11,
+                        endValue: 8,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+    
+    function createBulletHold(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 12,
+                endValue: 3,
+                minerTickInterval: 0 ,
+                majorTickInterval: 12,
+                label: {
+                    indentFromTick: 7,
+                    customizeText: function () {
+                        return this.valueText + '%'
+                    }
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [ 10, 9, 6, 5],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 12,
+                        endValue: 10,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 10,
+                        endValue: 9,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 9,
+                        endValue: 6,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 6,
+                        endValue: 5,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 5,
+                        endValue: 3,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+                 needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],              
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+
+
+     function createBulletAHT(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 285,
+                endValue: 225,
+                minerTickInterval: 0 ,
+                majorTickInterval: 200,
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [275, 261, 245, 235],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 285,
+                        endValue: 275,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 275,
+                        endValue: 261,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 261,
+                        endValue: 245,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 245,
+                        endValue: 235,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 235,
+                        endValue: 225 ,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+            needles: [{ value: 21, color: "#000"}],      
+            markers: [{ value: 5, color: "#000" }, { value: 17, color: "#000" }, { value: 43, color: "#000" }, { value: 81, color: "#000" }],
+            
+             subvalueIndicator: {
+                length:13,
+                width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2],
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+
+   
+     function createBulletCPD(divId, title, nps, nvalue, value2){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 59,
+                endValue: 110,
+                minerTickInterval: 0 ,
+                majorTickInterval: 200,
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [70, 80, 90, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 15
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "white",
+                ranges: [
+                    {
+                        startValue: 59,
+                        endValue: 70,
+                        color: unSatColor
+                    },
+                    {
+                        startValue: 70,
+                        endValue: 80,
+                        color: nIColor
+                    },
+                    {
+                        startValue: 80,
+                        endValue: 90,
+                        color: goodColor
+                    },
+                    {
+                        startValue: 90,
+                        endValue: 100,
+                        color: supColor
+                    },
+                    
+                    {
+                        startValue: 100,
+                        endValue: 110 ,
+                        color: outStandColor
+                    }
+                ]
+            },
+
+            needles: [{ value: 21, color: "#000"}],      
+            markers: [{ value: 5, color: "#000" }, { value: 17, color: "#000" }, { value: 43, color: "#000" }, { value: 81, color: "#000" }],
+            
+             subvalueIndicator: {
+              length:13,
+              width: 23,
+              type: 'triangleMarker',
+              color: '#3E8C8C'
+                },
+
+            
+            value: nvalue,
+            subvalues: [value2], //This is where prior score adjusted should be placed
+            valueIndicator: {
+                length:13,
+                width: 23,
+        		type: 'triangleMarker',
+        		color: '#0044CC'
+        	}
+
+        });
+    }
+
+    function createBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'textCloud',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    function createCircleBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'circle',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    function createSquareBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:700,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'rectangle',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    </script>
+
+<div class="bs" style="height:100%;">
+<apex:form >
+<apex:pageBlock id="stats" >
+    <div class="row">
+        <div class="col-xs-4">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-info">
+                        <div>
+                            <apex:selectList value="{!selectedVal}" size="1">
+                                <apex:actionSupport event="onchange" action="{!loadStats}"/>
+                                <apex:selectOptions value="{!AgentsList}" />
+                            </apex:selectList>
+                        </div>
+                        <div>
+                            <apex:selectList value="{!dateValue}" size="1">
+                                <apex:actionSupport event="onchange" action="{!loadStats}"/>
+                                <apex:selectOptions value="{!DateList}" />
+                            </apex:selectList> 
+                        </div>
+                </li>
+            </ul>
+        </div>
+        <div class="col-xs-4"></div>
+        <div class="col-xs-4">
+            <!-- Split button -->
+            <button type="button" class="btn btn-primary btn-lg active" onclick="window.print();">Print</button>
+            <apex:commandButton value="PDF" onclick="test();" /> 
+        </div>
+    </div>
+    <div class="row fullheight">
+        <div class="col-xs-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Agent Metrics</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <table class="table table-hover table-condensed table-striped table-bordered" style="width: 60%; cellspacing=0; cellpadding=0 ">
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter">
+                                            <!-- This is CPD --> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                    <apex:outputText value="{0, number, 0.00}" >
+                                                        <apex:param value="{!curCPD}"/>
+                                                    </apex:outputText>
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.00}">
+                                                        <apex:param value="{!prevCPD}"/>
+                                                </apex:outputText>
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="OverallContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is AHT -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.00}" >
+                                                        <apex:param value="{!curAHT}"/>
+                                                    </apex:outputText>
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.00}" >
+                                                        <apex:param value="{!prevAHT}"/>
+                                                    </apex:outputText>
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="AHTContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is HT -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.00}" >
+                                                        <apex:param value="{!curHT}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevHT}"/>
+                                                    </apex:outputText>%
+                                            </span> </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="HoldContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is CO7M -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!curCO7M}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevCO7M}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="SevenPlusContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is QBPA -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!curQBPA}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevQBPA}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="BPAContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is QERR -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!curQERR}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevQERR}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="ErrorContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is SA -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!curSA}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevSA}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="AdheranceContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                            <!-- This is FUT -->
+                            <tr>
+                                <div class="row">
+                                    <div class="no-gutter">
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px"><span style="align:left; font-size:20px"> Current Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!curFUT}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                        <div class="col-xs-6 no-gutter"> <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px"><span style="align:right; font-size:20px"> Prior Score: 
+                                                <apex:outputText value="{0, number, 0.0}" >
+                                                        <apex:param value="{!prevFUT}"/>
+                                                    </apex:outputText>%
+                                            </span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </tr>
+                            <tr>
+                                <div class="First-Line">
+                                    <div id="FollowUpContainer" class="Container"></div>
+                                </div>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-------------------------------------- Tables ----------------------------------------- -->
+        <div class="col-xs-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Agent Statistics</div>
+                <div class="panel-body">
+                <apex:pageBlock >
+                        <div>
+                            <div style="float:left">
+                                <table class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                    <tbody>
+                                        <tr style="float:left">Statistic..</tr>
+                                        <apex:repeat value="{!AgentStatsTwoMonthsAgo}" var="u">
+                                            <tr>
+                                                <td>{!u.statName}</td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="float: left">
+                                <table class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                    <tbody>
+                                        <tr>Current Month..</tr>
+                                        <apex:repeat value="{!AgentStatsPrevMonth}" var="u">
+                                            <tr>
+                                                <td style="background-color:{!u.color}">{!u.statValue}</td>
+                                            </tr>
+                                        </apex:repeat>
+                                            <tr><td><apex:inputField value="{!curAgent.Communication_with_Sup__c}"/></td></tr>
+                                            <tr><td><apex:inputField value="{!curAgent.Dependability__c}"/></td></tr>
+                                            <tr><td><apex:inputField value="{!curAgent.Teamwork__c}"/></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="float: left">
+                                <table class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                    <tbody>
+                                        <tr>Previous Month..</tr>
+                                        <apex:repeat value="{!AgentStatsTwoMonthsAgo}" var="u">
+                                            <tr>
+                                                <td style="background-color:{!u.color}">{!u.statValue}</td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="float: left">
+                                <table id="yearly_table" class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                    <tbody>
+                                        <tr>Yearly Avg</tr>
+                                        <apex:repeat value="{!YearlyAverages}" var="u">
+                                            <tr>
+                                                <td style="background-color:{!u.color}">{!u.statValue}</td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="saveButton">
+                                <apex:commandButton styleClass="btn btn-info btn-block active" value="Save" action="{!save}"/>
+                            </div>
+                        </div>
+                        <div style="width:340px">
+                             <div>
+                                <table id="total_table" class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <apex:outputLabel value="Total Points: "/> 
+                                            </td>
+                                            <td style="background-color:{!totBackground}">
+                                                <apex:outputText value="{0, number, 0.00}">
+                                                     <apex:param value="{!curTotal}"/>
+                                                </apex:outputText> 
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <table class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                <tbody>
+                                    <!-- Proper colors can be found on ColorCode.cls -->
+                                    <tr>
+                                        <!-- Red -->
+                                        <td style="background-color:#F44336">Unsatisfactory</td>
+                                        <td>0 to 25</td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Yellow -->
+                                        <td style="background-color:#FFEB3B">Needs Improvement</td>
+                                        <td>25 to 49</td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Purple -->
+                                        <td style="background-color:#9C27B0">Good</td>
+                                        <td>50 to 69</td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Blue -->
+                                        <td style="background-color:#2196F3">Superior</td>
+                                        <td>70 to 84</td>
+                                    </tr>
+                                    <tr>
+                                        <!-- Green -->
+                                        <td style="background-color:#4CAF50">Outstanding</td>
+                                        <td>85 to 100</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane content" data-spy="scroll" id="report">
+                            <div style="float: right; width: 100%; cellspacing=0; cellpadding=0">
+                                <div id="ltable_div" style="float: right; width: 100%; cellspacing=0; cellpadding=0"></div>
+                                <div id="table_div" style="float: right; width: 100%; cellspacing=0; cellpadding=0"></div>
+                                <table class="table table-striped" id="ltable_div"></table>
+                            </div>
+                        </div>
+                    </apex:pageBlock>
+                </div>
+            </div>
+        </div>
+    </div>
+    </apex:pageBlock>
+    </apex:form>
+</div>
+
+</apex:page>

@@ -1,0 +1,141 @@
+<apex:page docType="html-5.0" id="DailyActivity" controller="Ctrl_Agent_DailyActivity" sidebar="false">
+
+    <apex:styleSheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/jquery-2.1.3.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/js/bootstrap.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/css/bootstrap.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/knockout-3.3.0.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/globalize.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/dx.chartjs.js')}" />
+
+
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'dist/jspdf.min.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'jspdf.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF, 'jspdf.plugin.from_html.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF2, 'jsPDF-master/plugins/addhtml.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF2, 'jsPDF-master/plugins/canvas.js')}" />
+<apex:includeScript value="{!URLFOR($Resource.jsPDF2, 'jsPDF-master/plugins/addimage.js')}" />
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js" />
+<apex:includeScript value="{!URLFOR($Resource.Canvas2Image, '')}" />
+
+
+<style>
+.saveButton{
+    width:340px;
+    margin: 0 auto;
+}    
+    
+</style>
+
+<apex:form >
+
+         <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-8">
+                <div class="panel panel-primary" id="parentHolder">
+                            <div class="panel-body" id="commentParent">
+                            
+                          
+                                                    
+                            <div class="form-group">
+                            <label for="agentPickList"> Select Agent</label> 
+
+                                <div class="dropdown-toggle">  
+                                    <apex:selectList styleclass="btn btn-default brn-lg dropdown-toggle" id="agentPicker" size="1" value="{!tmpda.AgentID__c}"  >
+                                        <apex:selectOptions value="{!AgentsList}"/>
+                                         <apex:actionSupport event="onchange" reRender="agentTable"></apex:actionSupport>
+                                    </apex:selectList>
+                                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                          
+                          
+                            <div class="form-group">
+                            <label for="activityPicker">Select Activity Type</label>
+
+                                <div class="dropdown-toggle">  
+                                    <apex:selectList styleclass="btn btn-default dropdown-toggle" id="activityPicker" size="1" value="{!tmpda.Activity_Type__c}"  >
+                                        <apex:selectOptions value="{!ActivityType}"/>
+                                    </apex:selectList>
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">     
+                              <label for="activityDate">Enter Value</label>
+                                 <div class="calendar">
+                                    <apex:inputfield styleclass="btn btn-default dropdown-toggle"  value="{!tmpda.Value__c}" /> 
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                     
+                                 </div>
+                            </div>
+                            
+                             <div class="form-group">     
+                              <label for="activityDate">Select Activity Date</label>
+                                 <div class="calendar">
+                                    <apex:inputfield styleclass="btn btn-default dropdown-toggle"  value="{!tmpda.Activity_Date__c}" /> 
+                                    <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+                                     
+                                 </div>
+                            </div>
+                            
+
+                            
+                           <div class="form-group">
+                            <label for="comments">Supervisor Comments   <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></label>  
+                                   <div class="panel panel-body" >
+                                      
+                                        <apex:inputfield style=" width: 500px" value="{!tmpda.rcomments__c}"/>
+                                        <!-- <apex:inputField value="{!curAgent.Comments_notFormatted__c}" /> -->
+                                       
+                                   </div>
+                            </div>
+                             <div type="button" class="btn btn-primary btn-lg active">
+                               <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+                               <apex:commandButton style="width: 200px" styleClass="btn btn-primary btn-lg active" value="Save" action="{!save}">
+                               
+                               </apex:commandButton>
+                               
+                            </div>
+                                   
+                            </div>
+ 
+                                      
+ 
+                </div>
+                </div><!-- Col10 -->
+                 <div class="col-md-4">
+                     <div class="panel panel-primary" id="parentHolder">
+                       <div class="row">
+                        <div class="col-lg-12">
+                       <div class="input-group">
+                           <input type="text" class="form-control"  placeholder="Search for prior Attendance event"/>
+                                <button class="btn btn-default btn-lg" style="height: 100%" type="button">GO!</button>
+                           
+                          </div> 
+                          </div>
+                       </div>
+                              <apex:dataTable id="agentTable" value="{!PriorActivities}" var="u" width="100%" style="padding-right: 0px;" styleClass="center right table table-condensed table-curved table-hover table-bordered table table-striped">
+                                        <apex:facet name="header">Agent Daily Activities</apex:facet> 
+                                        
+                                        <apex:column >
+                                           <apex:outputLink title="" value="/{!u.id}/e?retURL=/apex/{!$CurrentPage.Name}" style="font-weight:bold">Edit</apex:outputLink>&nbsp;|&nbsp;
+                                           <a href="javascript:if (window.confirm('Are you sure?')) DeleteAccount('{!u.Id}');" style="font-weight:bold">Del</a>
+                                        </apex:column>
+                                        
+                                        <apex:column value="{!u.Activity_Type__c}" headerValue="Activity Type" />
+                                        <apex:column value="{!u.Value__c}" headerValue="Activity Value" />
+                                        <apex:column value="{!u.Activity_Date__c}" headerValue="Activity Date" />
+                                     
+                                    </apex:dataTable>
+                    </div>
+                 </div>
+                     
+                 </div>
+                  
+                </div>
+            
+    
+</apex:form>
+
+</apex:page>

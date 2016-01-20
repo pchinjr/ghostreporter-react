@@ -1,0 +1,1138 @@
+<apex:page controller="AJAXController" sidebar="false">
+	<style>
+    .col1 {width:230px; text-align:center;}
+    .col2 {width:700px; text-align:center;}
+    .col3 {width:100px; text-align:center;}       
+    .col4 {width:43%; text-align:center; align-self:center;}
+    .col5 {width:100%;  text-align:center;}
+    .col6 {width:200px;}
+    .row1 {height: 50px;}
+	
+	.startButton {
+		width:160px;
+		height:25px;
+		position:relative;
+		top:0px;
+		
+	}
+	.startButtonForm {
+		text-align:center;
+	    width:152px;
+	    height:32px;
+	    z-index:2;
+	}
+
+	#content,#sidebar {
+	    line-height: normal;
+	    text-align: center;
+	    border: 1px solid; 
+	}
+	 
+	#sidebar {
+	    background-color: white;
+	    border-color: white;
+	    border-left: 0px;
+	    position:relative;
+	    top:4px;
+	    
+	    display: none;
+	}
+	#content {
+	    background-color: white;
+	    border-color: white;
+	    width: 98%;
+	}
+	 
+	.use-sidebar #content {width: 75%;}
+	.use-sidebar #sidebar {
+	    display: block;
+	    width: 23%;
+	}
+	
+	.buttonAvailableState {
+		background: #74BF79;
+		color:black;
+		opacity: 1.0;
+	}
+	
+	.buttonUnavailableState {
+		background: #FF9999;
+		color:black;
+		opacity: 1.0;
+	}
+	
+	.buttonGrayedOutState {
+		background: #DADADA;
+		color: black;
+	}
+	
+	.sidebar-at-left #sidebar {margin-right: 0%;}
+	.sidebar-at-right #sidebar {margin-left: 0%;}
+	 
+	.sidebar-at-left #content, .use-sidebar.sidebar-at-right #sidebar, .sidebar-at-right #separator {float: right;}
+	.sidebar-at-right #content, .use-sidebar.sidebar-at-left #sidebar, .sidebar-at-left #separator {float: left;}
+	 
+	#separator {
+		background-image:url('{!URLFOR($Resource.vertlinerev, '')}');
+	    background-color: white;
+	    background-repeat: no-repeat;
+	    background-position: right center;
+	    display: block;
+	    outline: none;
+	    width: 1.5%;
+	    height:56px;
+	    opacity:0.5;
+	    position:relative;
+	    top:40px;
+	}
+	.use-sidebar #separator {
+		background-image:url('{!URLFOR($Resource.vertline, '')}');
+	    border-color: #FFF;
+	}
+	#separator:hover {
+	    opacity:1.0;
+	}
+	
+	
+	
+	td.details-control {
+	    background: url('{!URLFOR($Resource.detailsopen, '')}') no-repeat center center;
+	    cursor: pointer;
+	}
+	tr.shown td.details-control {
+	    background: url('{!URLFOR($Resource.detailsclose, '')}') no-repeat center center;
+	}
+	
+	.tableRows {
+		text-align: center;
+		height:20px;
+	}
+	.tableCellHeader {
+		height:22px;
+		font-style:bold;
+		font-size:18px;
+		text-align: center;
+	}
+	
+	.tableRowText {
+		height:26px;
+		font-style:bold;
+		font-size:14px;		
+		text-align: center;
+	}
+	
+	.tableRowTextHover {
+		font-style:bold;
+		font-size:14px;		
+		text-align: center;
+		background-color: lightgray;
+	}
+
+	#progressbar {
+		margin-top: 20px;
+	}
+	.progress-label {
+		font-weight: bold;
+		text-shadow: 1px 1px 0 #fff;
+	}
+	.ui-dialog-titlebar-close {
+		display: none;
+	}
+	
+</style>
+	
+	<!-- Include jQuery UI CSS theme -->
+	<apex:stylesheet value="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css"/>
+	
+	<!-- Include Chosen select menu CSS -->
+	<apex:stylesheet value="{!URLFOR($Resource.chosen, 'chosen.css')}"/>
+	
+	<!-- Include DataTables CSS libraries -->
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/css/jquery.dataTables_themeroller.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/KeyTable/css/dataTables.keyTable.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/ColReorder/css/dataTables.colReorder.css')}"/>
+
+	<div id="dialog" title="Refreshing ProActive">
+		<div class="progress-label">Refreshing...</div>
+		<div id="progressbar"></div>
+	</div>
+	<div class="use-sidebar sidebar-at-right" id="main">
+	
+		<table border="0" width="100%" style="display:inline; table-layout:fixed;">
+			<tbody>
+				<tr>
+					<th style="width:700px; ">
+						<div id="chart_div4" style="width:100%;"></div>
+					</th>
+					<th style="width:60px;">
+						<div id="chart_div5" style="width:100%; left:-10px"></div>
+					</th>
+					<th style="width:240px; padding-left:195px">
+						<a href="" id="checkin_button" style="font-size:large; height:40px; width:240px; display:block; right:5px;" class="ui-button ui-widget"></a>
+						<a href="" id="checkout_button" style="font-size:large; height:40px; width:240px; display:block; right:5px;" class="ui-button ui-widget"></a>
+						
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	     
+	    <div id="content">
+	        <!-- Relevant lists -->
+            
+	       <apex:panelGrid id="grid2" columns="3" columnclasses="col3" border="0" cellpadding="1" cellspacing="1">
+		        
+		        <select class="ui-selectmenu-text" data-placeholder="Filter cases by..." id="selection" style="width:170px;">
+						<option value="mycases_sel">My Cases</option>
+						<option value="unassigned_sel">Unassigned Cases</option>
+						<option value="allcases_sel">All Cases</option>
+				</select>	            
+	            
+	            <apex:form > 
+					<a href="/500/e?retURL=apex/Launchpad_datatable?sfdc.tabName=01re0000000D3g7" id="newca_button" style="height:25px; width:120px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">New Case</a>
+				</apex:form>
+				
+				<form id="start_button_form">
+					<a href="" id="start_button" style="height:25px; width:220px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">Start an unassigned case</a>
+				</form>
+				
+			</apex:panelGrid>
+			
+			<apex:outputPanel id="lists" styleClass="#content" layout="block">									
+				<apex:form >	
+			        <table title="Case List" cellpadding="0" cellspacing="0" border="0" class="display" id="tblid" width="100%">
+			            <thead>
+				            <tr>
+				            	<th></th>
+				                <th>Origin</th> <!-- 1 -->
+				                <th>Priority</th> <!-- 2 -->
+				                <th>Account ID</th> <!-- 3 -->
+				                <th>Customer Name</th> <!-- 4 -->
+				                <th>Note</th> 
+				                <th>CC Date</th> 
+				                <th>Owner</th> 
+				                <th>Status</th>
+				                <th>Hours</th> 
+				                <th>Owner Name</th> <!-- 11 -->
+				                <th>Case Number</th> 
+				                <th>Description</th> 
+				                <th>OwnerId</th> <!-- 16 -->
+				                <th>Age</th>
+				                <th>ContactId</th>
+				                <th>CC ID</th>
+			                </tr>
+			            </thead>
+			            <tbody></tbody>
+			        </table>  	
+	 			 </apex:form>
+ 			 </apex:outputPanel>
+		</div>
+		
+	    <div id="sidebar"> 
+    	
+    		<a href="/00U/e?retURL=apex/Launchpad_datatable?sfdc.tabName=01re0000000D3g7" id="newevt_button" style="align-self:center; bottom: 2px; height:25px; width:120px; border-botton:2px solid white;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">New Event</a>
+    	<table cellpadding="0" cellspacing="0" border="0" class="display" id="tblid2" width="100%">
+	            <thead>
+	            	<th></th>
+	            	<th>Date</th>
+	            	<th>Subject</th>
+	            	<th>CRT</th>
+	            	<th>Done</th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th>Starts</th>
+	            	<th></th>
+	            	<th>Acct No.</th>
+	            	<th>Complete</th>
+            	</thead>
+            	<tbody></tbody>
+            	
+           	</table>
+           	
+           	
+	    </div>
+	    
+	    <apex:form > 
+	    	<apex:outputpanel title="Hide events window">
+			    <a href="#" id="separator"></a>
+			    <div style="width: 14px; height:56px;" class="clearer">&nbsp;</div>
+	    	</apex:outputpanel>
+	    </apex:form>
+	    
+	</div>
+
+	<!-- utilities --> 
+	<apex:form > 
+		<apex:actionFunction name="redirect" action="{!getPageRef}" rerender="">
+			<apex:param name="firstParam" assignTo="{!objId}" value="" />
+			<apex:param name="secondParam" assignTo="{!objType}" value="" />
+		</apex:actionFunction>
+		
+		<apex:actionFunction name="startUnassignedCase" action="{!findNextCaseUnassigned}" rerender=""/>
+		
+		<apex:actionFunction name="checkIn" action="{!checkUserIn}" rerender=""/>
+		<apex:actionFunction name="checkOut" action="{!checkUserOut}" rerender=""/>
+		
+		
+		<!-- <apex:actionFunction name="checkUserStatusHistory" action="{!checkUserStatusHistories}" rerender=""/> -->
+		<!-- 
+		<apex:actionFunction name="setCaseStatus" action="{!setCaseInProgress}" rerender="">
+			<apex:param name="firstparam" assignTo="{!objId}" value=""/>
+		</apex:actionFunction>
+		 -->
+		
+		
+	</apex:form>		
+
+	<!-- Include libraries for jQuery & jQuery UI -->
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-1.11.1.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-ui-1.10.4.js')}"/>	
+	
+	<!-- Include library for DataTables -->
+	<apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/js/jquery.dataTables.js')}"/>
+	
+	<!-- Include library for Chosen (select menu jQuery plugin) -->
+	<apex:includescript value="{!URLFOR($Resource.chosen, 'chosen.jquery.js')}"/>
+	
+	<!-- Include library for DataTables keytables -->
+	<apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/KeyTable/js/dataTables.keyTable.js')}"/>
+	
+	<!-- Include library for DataTables column reorder -->
+	<apex:includescript value="{!URLFOR($Resource.colreorder2, '')}"/>
+	
+	
+	<!-- Include Google Javascript API library -->
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	
+
+<script> 
+	
+	/* Replace "$." with "$j." to call JQuery API
+	 * so it doesn't conflict with Salesforce
+	 */
+	$j = jQuery.noConflict();
+	
+	/*
+	 * Runs once the page is loaded
+	 */
+	$j(document).ready(function() {	    
+		
+		Visualforce.remoting.Manager.invokeAction(	'{!$RemoteAction.AJAXController.updateCaseAges}',
+				function(result, event) {  } );
+		
+		var table = $j('#tblid'); // #tblid is the id of the Case table
+		var table2 = $j('#tblid2'); // #tblid2 is the id of the Activities table
+		
+		// Reskin the select view dropdown and add event listeners to filter the case table
+		// to what the user chooses
+		$j('#selection').chosen({disable_search_threshold: 10}).on('change', function() {
+			
+			// Clear filters and apply a filter on column 13 (OwnerID) 
+    		if (this.value == 'mycases_sel') {
+    			table.DataTable().columns().search(''); // clear filters
+    			table.DataTable().column(13).search('{!userName}').draw(); 
+    		}
+    		
+    		// Clear filters and apply a filter on column 8 (Status)
+    		else if (this.value == 'unassigned_sel') {
+    			table.DataTable().columns().search(''); // clear filters
+    			table.DataTable().column(8).search('Unassigned').draw();
+    		}
+    		
+    		else if (this.value == 'allcases_sel') {
+    			table.DataTable().columns().search('').draw(); // clear filters
+    		}
+ 		});
+		
+		// Readjust columns to use maximum space, then redraw the chart
+	 	function redrawTable() {
+	 		table.DataTable().columns.adjust().draw(false);
+	 		table2.DataTable().columns.adjust().draw(false);
+	 	}
+		
+		// Change the default pointer to a hand
+		$j('#tblid').css( 'cursor', 'pointer' );
+		$j('#tblid2').css( 'cursor', 'pointer' );
+		
+		table.dataTable({
+			"columns": [ { // column 0
+				"class":          'details-control',
+                "orderable":      false,
+                "data":           null,
+                "defaultContent": ''
+			},
+            { "data": "Origin" }, // column 1
+            { "data": "Priority" }, // column 2
+            { "data": "AccountID" },
+            { "data": "Cust_Name" },
+            { "data": "Note" },
+            { "data": "CR_Date" }, // column 6
+            { "data": "Owner_Name" },
+            { "data": "Status" }, // column 8
+            { "data": "CaseAge" },
+            { "data": "Cont_Email" },
+            { "data": "CaseNumber" },
+            { "data": "Description" },
+            { "data": "OwnerId" }, // column 13
+            { "data": "Cont_Phone" },
+            { "data": "ContactId" },
+            { "data": "CC_ID" }
+        	],
+			"columnDefs": [
+			{ // Sets visibility of columns in "targets"
+                "targets": [ 10,11,12,13,14,15, 16 ], 
+                "visible": false
+            }],
+            "lengthMenu": [[ 10, 25, 50, 100, 250, 500, -1 ], [ 10, 25, 50, 100, 250, 500, "All" ]], // Sets the available "Show X entries" options
+        	"scrollY":        450, // Set the height of the table to 450, scroll vertically when appropriate
+        	"scrollX": 800,
+        	"scrollCollapse": false, // Don't collapse the table to the contents
+            "Processing"   : true, // Do the processing client-side
+            "jQueryUI": 	true, // Use the JQuery themeroller to style the table
+        	"pagingType": 	"simple_numbers",  // Set the paging options to show "Previous" "Next" and page numbers
+            "ServerSide"   : false, // Don't do serverside processing
+            "order": [[2, 'asc'],[6, 'asc']], // Initialize the table with columns 2 (priority) and 6 (CR_Date) sorted
+            "ajax"   : '{!$Page.AjaxResponder}' // Source of the JSON
+	    } );
+	    
+	    // Initialize ColReorder on table1 to allow reordering the columns
+	    var table1_reorder = new $j.fn.dataTable.ColReorder( table.DataTable() );
+	    
+	    // Initialize table to show 100 items
+	    table.DataTable().page.len(100).draw();
+	    
+	    // Filter table to only show the user's cases
+	    table.DataTable().column(13).search('{!userName}').draw();
+	    
+	    // Initialize KeyTable on the case table
+	    var keys_table1 = new $j.fn.dataTable.KeyTable( table.DataTable() );
+	    
+	    // Runs when enter is pressed, navigate to the selected case if not on the first column
+	    // Otherwise, expand/collapse the child rows
+	    keys_table1.event.action(null, null,
+			function(node, x, y) { // "node" is the currently selected cell
+				if (x > 0) {
+					// Redirect the user to the currently selected case's detail page
+					// Calls the apex:ActionFunction "redirect" which returns a PageReference to the case detail page
+					redirect(table.DataTable().row(y).data().CaseNumber, 'Case'); 
+				}
+				else {
+					var tr = $j(node).closest('tr');
+			        var row = table.DataTable().row( tr );
+			        
+			        if ( row.child.isShown() ) {
+			            // This row is already open - close it
+			            row.child.hide();
+			            tr.removeClass('shown');
+			        }
+			        else {
+			            // Open this row
+			            row.child( format(row.data()) ).show();
+			            tr.addClass('shown');
+			        }	
+				}
+			}
+		);
+	    
+	    // Add event listener for opening and closing details
+	    $j('#tblid tbody').on('click', 'td.details-control', function () {
+	        var tr = $j(this).closest('tr');
+	        var row = table.DataTable().row( tr );
+	        
+	        if ( row.child.isShown() ) {
+	            // This row is already open - close it
+	            row.child.hide();
+	            tr.removeClass('shown');
+	        }
+	        else {
+	            // Open this row
+	            row.child( format(row.data()) ).show();
+	            tr.addClass('shown');
+	        }
+	        // Attach jQuery UI classes to the new button
+	        addButtonClasses(row.data());
+	    } );	
+	    
+    	// Double click redirects the user to the case detail page
+    	$j('#tblid tbody').on( 'dblclick', 'tr', function () {
+	    	
+	    	//srcUp('/'+table.DataTable().row(this).data().Id+'?isdtp=vw');
+    		//srcSelf('/'+table.DataTable().row(this).data().Id+'?isdtp=vw');
+    		
+    		// Calls the apex:ActionFunction "redirect" which returns a PageReference to the case detail page
+	    	redirect(table.DataTable().row(this).data().CaseNumber, 'Case');
+	    	
+    	} );
+    	
+    	// Initialize the DataTable of Activities
+	    table2.dataTable({
+		    "columns": [ {
+					"class":          'details-control',
+	                "orderable":      false,
+	                "data":           null,
+	                "defaultContent": ''
+				},
+	            { "data": "ActivityDate" }, // column 1
+	            //{ "data": "Subject" },
+	            { "data": "CRT_Subject" }, //Changed to CRT_Subject from location by Mike McGee 10/07/14
+	            { "data": "Type" }, // column 4
+	            { "data": "Created By" },
+	            { "data": "Description" },
+	            { "data": "Endtime" },
+	            { "data": "ContactName" },//column 8
+	            { "data": "Phone" },
+	            { "data": "Starttime" },
+	            { "data": "Id" },
+	            { "data": "Account Number" }, //column 12
+	            { "data": "null",
+                	"defaultContent": '<a href="#"  class="remove" style="text-decoration:none;"><button type = "button" style="height:25px; width:100px" class = "ui button ui widget ui-state-default ui-corner-all ui-button-text-only">Completed</button></a> ',
+                	orderable: false
+	            }
+            ],
+            "columnDefs": [{
+                "targets": [4,5,6,7,8,9,10,11,12 ],
+                "visible": false
+            }],
+        	"scrollY":        455,
+        	"scrollX": 200,
+        	"pagingType": 	"simple",
+        	"scrollCollapse": false,
+            "Processing"   : true,
+            "lengthChange" : false,
+            "jQueryUI": 	true,
+            "ServerSide"   : false,
+            "order": [[1, 'asc']], // order by the activity date
+            "ajax"   : '{!$Page.AjaxController_Activities}'
+	    } );
+	    
+	   
+	    // Allow column reordering on the Activity table
+	    var table2_reorder = new $j.fn.dataTable.ColReorder( table2.DataTable() );
+	   
+	    //Initialize Keytable on the activities table
+	    var keys_table2 = new $j.fn.dataTable.KeyTable( table2.DataTable() );
+	    
+	    // Runs when enter is pressed, navigate to the selected case if not on the first column
+	    // Otherwise, expand/collapse the child rows
+	    keys_table2.event.action(null, null,
+			function(node, x, y) {
+				if (x > 0) {
+					// Calls the apex:ActionFunction "redirect" which returns a PageReference to the Activity's detail page
+					redirect(table2.DataTable().row(y).data().Id, 'Activity');
+				}
+				else {
+					var tr = $j(node).closest('tr');
+			        var row = table2.DataTable().row( tr );
+			        
+			        if ( row.child.isShown() ) {
+			            // This row is already open - close it
+			            row.child.hide();
+			            tr.removeClass('shown');
+			        }
+			        else {
+			            // Open this row
+			            row.child( format2(row.data()) ).show();
+			            tr.addClass('shown');
+			        }
+			        addButtonClasses();	
+				}
+			}
+		);  
+
+
+		
+		//Event listener for completeion funciton on activities table 
+		 $j('#tblid2').on( 'click', 'tr a.remove' ,  function () { 
+		 		
+		 		//get row that wa clicked on 
+				var tr = $j(this).closest('tr');
+	        	var row = table2.DataTable().row( tr );
+				
+				// the col of the cell will always be 4 for comleted 
+				var cell = table2.DataTable().cell(row, 4); 
+				var id = table2.DataTable().cell(row, 11); 
+				
+            	//change data of cell to true
+            	cell.data(true).draw();
+            	
+				            	
+            	
+            	Visualforce.remoting.Manager.invokeAction(	'{!$RemoteAction.AJAXController.completeEvent}', id.data(),
+				function(result, event) {  } );
+            	
+				
+            	table2.fnDeleteRow(row);
+            	
+            	table2.fnAjaxUpdate(); 
+            	
+            	
+   		 } );
+		
+
+		
+	    // Add event listener for opening and closing details
+	    $j('#tblid2').on('click', 'td.details-control', function () {
+	        var tr = $j(this).closest('tr');
+	        var row = table2.DataTable().row( tr );
+	 
+	        if ( row.child.isShown() ) {
+	            // This row is already open - close it
+	            row.child.hide();
+	            tr.removeClass('shown');
+	        }
+	        else {
+	            // Open this row
+	            row.child( format2(row.data()) ).show();
+	            tr.addClass('shown');
+	        }
+	    } );
+	    
+	    /*
+	    // Single click highlights the row
+	    $j('#tblid tbody').on( 'click', 'tr', function () {
+	        if ( $j(this).hasClass('selected') ) {
+	            $j(this).removeClass('selected');
+	        }
+	        else {
+	            $j('tr.selected').removeClass('selected');
+	            $j(this).addClass('selected');
+	        }
+    	} );
+    	*/
+    	
+
+    	/*
+    	// Single click highlights the row
+    	$j('#tblid2 tbody').on( 'click', 'tr', function () {
+	        if ( $j(this).hasClass('selected') ) {
+	            $j(this).removeClass('selected');
+	        }
+	        else {
+	            $j('tr.selected').removeClass('selected');
+	            $j(this).addClass('selected');
+	        }
+    	} );
+    	*/
+    	
+    	// Double click redirects the user to the event/task detail page
+    	$j('#tblid2 tbody').on( 'dblclick', 'tr', function () {
+    		// Calls the apex:ActionFunction "redirect" which returns a PageReference to the Activity's detail page
+            redirect(table2.DataTable().row(this).data().Id, 'Activity');
+    	} );
+    	
+	    
+	    // Enables hover/click functionality for the buttons
+	    function addButtonClasses(d) {
+	    	
+			button = $j('#button'+d.CaseNumber);
+			
+			button.button(); // Transform into a jQuery UI button
+			
+			if (d.Status == 'Unassigned' || d.OwnerId != '{!userName}') {
+				button.button("option", "disabled", true);
+			}
+			
+			/* .hover(function1(){}, function(){})
+			 * function1() defines the function to run when the mouse is hovering over the element
+			 * function2() defines the function to run when the mouse is no longer hovering over the element
+			 */
+			button.hover(function() {
+				$j(this).addClass('ui-state-hover'); 
+			}, function() {
+				$j(this).removeClass('ui-state-hover');
+			});
+			
+			/* Define functions for mousedown and mouseup events
+			 * Makes the button 'clickable'
+			 */
+			button.mousedown(function() {
+				$j(this).addClass('ui-state-active');
+			});
+			
+			button.mouseup(function() {
+				$j(this).removeClass('ui-state-active');
+			}); 
+	    }
+	    
+    	
+    	// Create New Task button and add hover/click UI events
+    	var newtaskbutton = $j('#newtsk_button');
+    	
+    	/* .hover(function1(){}, function()1{})
+		 * function1() defines the function to run when the mouse is hovering over the element
+		 * function2() defines the function to run when the mouse is no longer hovering over the element
+    	 */
+		newtaskbutton.hover(function() {
+			$j(this).addClass('ui-state-hover');
+		}, function() {
+			$j(this).removeClass('ui-state-hover');
+		});
+		
+		/* Define functions for mousedown and mouseup events
+		 * Makes the button 'clickable'
+		 */
+		newtaskbutton.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		newtaskbutton.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});    	
+    	
+    	// Create New Event button and add hover/click UI events
+ 		var newevtbutton = $j('#newevt_button');
+ 		
+ 		newevtbutton.button(); // transform the new event link into a jQuery ui button
+ 		
+ 		/* .hover(function1(){}, function()1{})
+		 * function1() defines the function to run when the mouse is hovering over the element
+		 * function2() defines the function to run when the mouse is no longer hovering over the element
+    	 */
+		newevtbutton.hover(function() {
+			$j(this).addClass('ui-state-hover');
+		}, function() {
+			$j(this).removeClass('ui-state-hover');
+		});
+		
+		/* Define functions for mousedown and mouseup events
+		 * Makes the button 'clickable'
+		 */
+		newevtbutton.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		newevtbutton.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});
+    	
+    	// Create New Case button and add hover/click UI events
+   		var newcabutton = $j('#newca_button');
+   		
+   		newcabutton.button(); // transform the new case link into a jQuery ui button
+   		
+   		/* .hover(function1(){}, function()1{})
+		 * function1() defines the function to run when the mouse is hovering over the element
+		 * function2() defines the function to run when the mouse is no longer hovering over the element
+    	 */
+		newcabutton.hover(function() {
+			$j(this).addClass('ui-state-hover');
+		}, function() {
+			$j(this).removeClass('ui-state-hover');
+		});
+		
+		/* Define functions for mousedown and mouseup events
+		 * Makes the button 'clickable'
+		 */
+		newcabutton.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		newcabutton.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});
+		
+		// Create Start new unassigned case button and add hover/click UI events
+    	var button = $j('#start_button');
+    	
+   		button.button(); // transform the start new unassigned case link into a jQuery ui button
+   		
+   		// Pull the user's status from the page controller and disable/enable the start new unassigned case button
+   		button.button("option", "disabled", !{!userStatus});
+   		
+   		/* .hover(function1(){}, function()1{})
+		 * function1() defines the function to run when the mouse is hovering over the element
+		 * function2() defines the function to run when the mouse is no longer hovering over the element
+    	 */
+		button.hover(function() {
+			$j(this).addClass('ui-state-hover');
+		}, function() {
+			$j(this).removeClass('ui-state-hover');
+		});
+		
+		/* Define functions for mousedown and mouseup events
+		 * Makes the button 'clickable' */
+		button.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		button.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});
+		
+		//Define a click action for the start button
+    	button.on('click', function() {
+    		// Run the apex:ActionFunction "startUnassignedCase" 
+    		startUnassignedCase();
+    	});
+    	
+    	
+    	/* Progressbar info
+    	 * @variables:
+    	 * 		progressTimer: Used to keep track of the completed percentage of the progress bar
+    	 * 		progressBar: A jQuery UI progressBar element
+    	 * 		progressLabel: Text informing the user of the value of the progressTimer
+    	 * 		dialogButtons: Gives the user the option to close the dialog after completion
+    	 * 		dialog: The popup container that holds the progressBar, progressLabel and dialogButtons
+    	 */
+	  	var progressTimer, 
+	  		progressBar = $j('#progressbar'),
+	  		progressLabel = $j('.progress-label'),
+	  		dialogButtons = [], // no buttons needed initially
+	  		dialog = $j('#dialog').dialog({
+	  			autoOpen: false,
+	  			closeOnEscape: false,
+	  			resizable: false,
+	  			open: function() { // runs when the dialog is opened
+	  				progressTimer = setTimeout(progress, 2500); // 2 sec delay, then run function() progress
+	  			}
+	  		});
+	  	
+	  	progressBar.progressbar({
+	  		value: false,
+	  		change: function() {
+	  			progressLabel.text("Current Progress: " + progressBar.progressbar( 'value' ) + "%" );
+	  		},
+	  		complete: function() {
+	  			progressLabel.text("Done!");
+	  			dialog.dialog("option", "buttons", [{
+	  				text: "Close",
+	  				click: closeDownload
+	  			}]);
+	  			$j('.ui-dialog button').last().focus();
+	  		}
+	  	});
+	  	
+	  	function progress() {
+	  		var val = progressBar.progressbar("value") || 0;
+	  		
+	  		progressBar.progressbar("value", val+1);
+	  		
+	  		if (val <= 99) {
+	  			progresstimer = setTimeout(progress, 100);
+	  		}
+	  	}  
+    	
+    	function closeDownload() {
+    		clearTimeout(progressTimer);
+    		dialog
+    			.dialog("option", "buttons", dialogButtons)
+    			.dialog("close");
+    		progressBar.progressbar("value", false);
+    		progressLabel.text("Loading tables..");
+    		
+    		$j('#tblid').DataTable().ajax.reload(function() { /*do nothing*/ }, true /* don't save the current page the user is on */ );
+    		
+    		avail_btn.button("option", "disabled", avail_lastclicked);
+    		unavail_btn.button("option", "disabled", unavail_lastclicked);
+    		button.button("option", "disabled", unavail_lastclicked);
+    	}
+	  	
+    	//Setup the available button
+	  	var avail_btn = $j('#checkin_button');
+	  	
+	  	//Setup some booleans to track the clicks of the available&unavailable buttons
+    	var avail_lastclicked = false;
+    	var unavail_lastclicked = false;
+    	
+    	// Set the available button as a jQuery UI button
+    	avail_btn.button();
+    	
+    	avail_btn.button({label: "Available"});
+    	//if ({!userStatus} == true) setStatusButtonAsAvailable();
+    	//else setStatusButtonAsUnavailable();
+    	
+    	avail_btn.button("option", "disabled", {!userStatus});
+    	
+    	avail_btn.hover(function() {
+    		$j(this).addClass('ui-state-hover');
+    	}, function() {
+    		$j(this).removeClass('ui-state-hover');
+    	});
+    	
+    	avail_btn.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		avail_btn.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});
+		
+		function setStatusButtonAsUnavailable() {
+			
+			avail_btn.button({label: "Unavailable"});
+			
+			avail_btn.removeClass('buttonAvailableState');
+			avail_btn.addClass('buttonUnavailableState');
+			
+			avail_btn.on('click', function() {
+	    		checkIn();
+	    		//dialog.dialog("open");
+	    		avail_lastclicked = true;
+	    		unavail_lastclicked = false;
+	    		//setTimeout("$j('#tblid').DataTable().ajax.reload(function() { /*alert('Successfully checked in!')*/ }, false)", 6000);
+	    		avail_btn.button("option", "disabled", true);
+	    		//unavail_btn.button("option", "disabled", true);
+	    		button.button("option", "disabled", true);
+	    		//setStatusButtonAsAvailable();
+	    	});		
+    	}
+    	
+    	avail_btn.on('click', function() {
+    		checkIn();
+    		avail_btn.addClass('buttonAvailableState');
+    		avail_btn.removeClass('buttonGrayedOutState');
+    		avail_btn.button({label: "You are Available"});
+    		unavail_btn.button({label: "Become Unavailable"});
+	    	unavail_btn.removeClass('buttonUnavailableState');
+	    	unavail_btn.addClass('buttonGrayedOutState');
+    		avail_lastclicked = true;
+    		unavail_lastclicked = false;
+    		//setTimeout("$j('#tblid').DataTable().ajax.reload(function() { alert('Successfully checked in!') }, false)", 6000);
+    		avail_btn.button("option", "disabled", true);
+    		unavail_btn.button("option", "disabled", true);
+    		button.button("option", "disabled", true);
+    		//dialog.dialog("open");
+    	});		
+    	
+    	var unavail_btn = $j('#checkout_button');
+		
+		unavail_btn.button();
+		
+		unavail_btn.button({label: "Unavailable"});
+		
+		unavail_btn.button("option", "disabled", !{!userStatus});
+		
+    	unavail_btn.hover(function() {
+    		$j(this).addClass('ui-state-hover');
+    	}, function() {
+    		$j(this).removeClass('ui-state-hover');
+    	});
+    	
+    	unavail_btn.mousedown(function() {
+			$j(this).addClass('ui-state-active');
+		});
+		
+		unavail_btn.mouseup(function() {
+			$j(this).removeClass('ui-state-active');
+		});
+		
+		function setStatusButtonAsAvailable() {
+		
+			avail_btn.button({label: "Available"});
+		
+			avail_btn.addClass('buttonAvailableState');
+			avail_btn.removeClass('buttonUnavailableState');
+			
+			avail_btn.on('click', function() {
+	    		checkOut();
+	    		//dialog.dialog("open");
+	    		avail_lastclicked = false;
+	    		unavail_lastclicked = true;
+	    		//setTimeout("$j('#tblid').DataTable().ajax.reload(function() { alert('Successfully checked out!') }, false)", 6000);
+	    		avail_btn.button("option", "disabled", true);
+	    		//unavail_btn.button("option", "disabled", true);
+	    		button.button("option", "disabled", true);
+	    		setStatusButtonAsUnavailable();
+	    	});	
+		}
+		
+    	unavail_btn.on('click', function() {
+    		checkOut();
+    		avail_btn.removeClass('buttonAvailableState');
+    		avail_btn.addClass('buttonGrayedOutState');
+    		unavail_btn.addClass('buttonUnavailableState');
+    		unavail_btn.removeClass('buttonGrayedOutState');
+    		avail_btn.button({label: "Become Available"});
+    		unavail_btn.button({label: "You are Unavailable"});
+    		avail_lastclicked = false;
+    		unavail_lastclicked = true;
+    		//setTimeout("$j('#tblid').DataTable().ajax.reload(function() { alert('Successfully checked out!') }, false)", 6000);
+    		avail_btn.button("option", "disabled", true);
+    		unavail_btn.button("option", "disabled", true);
+    		button.button("option", "disabled", true);
+    		//dialog.dialog("open");
+    	});
+    	
+    	if (!{!userStatus}) {
+    		unavail_btn.button({label: "You are Unavailable"});
+    		avail_btn.button({label: "Become Available"});
+    		avail_btn.removeClass('buttonAvailableState');
+    		avail_btn.addClass('buttonGrayedOutState');
+	    	unavail_btn.addClass('buttonUnavailableState');
+    	}
+    	
+    	else {
+    		avail_btn.button({label: "You are Available"});
+    		unavail_btn.button({label: "Become unavailable"});
+    		avail_btn.addClass('buttonAvailableState');
+	    	unavail_btn.removeClass('buttonUnavailableState');
+	    	unavail_btn.addClass('buttonGrayedOutState');
+    	}
+    	
+    	
+		/* Formatting function for row details
+		 * Adds child rows to the case table
+		 */
+		function format ( d ) {
+			var t_URL = 'https://cs15.salesforce.com/00T/e?'+'who_id='+d.v+'&what_id='+d.Id+'&retURL=apex/Launchpad_datatable?sfdc.tabName=01re0000000D3g7';
+			var e_URL = 'https://cs15.salesforce.com/00U/e?'+'who_id='+d.ContactId+'&what_id='+d.Id+'&retURL=apex/Launchpad_datatable?sfdc.tabName=01re0000000D3g7';
+		    
+		    // Call an action function here to update CRT Review DT field
+		    // setCaseStatus(d.Id);
+		    
+		    // `d` is the original data object for the row
+		    return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+		        '<tr>'+
+		            '<td>Phone:</td>'+
+		            '<td>'+d.Cont_Phone+'</td>'+
+		        '</tr>'+
+		        '<tr>'+
+		            '<td>Email:</td>'+
+		            '<td>'+d.Cont_Email+'</td>'+
+		        '</tr>'+
+		        '<tr>'+
+		            '<td>Description:</td>'+
+		            '<td>'+d.Description+'</td>'+
+		        '</tr>'+
+		        '<tr>'+
+		        	'<td></td>'+
+		        	'<td>'+
+			        	'<a id="button'+d.CaseNumber+'" style="height:25px; width:100px" class="ui-button" href='+e_URL+'>New Event</a>'+ //This would be where hardcoded
+		        	'</td>'+
+		        '</tr>'+
+		    '</table>';
+		}
+		
+
+		/* Formatting function for row details
+		 * Adds child rows to the activities table
+		 */
+		function format2 ( d ) {
+		    // `d` is the original data object for the row	     
+		    return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+		        '<tr>'+
+		        	'<td>Contact:</td>'+
+		            '<td>'+d.ContactName+'</td>'+
+		        '</tr>'+
+		        '<tr>'+
+		            '<td>Phone:</td>'+
+		            '<td>'+d.Phone+'</td>'+
+		        '</tr>'+
+		        '<tr>'+
+		            '<td>Description:</td>'+
+		            '<td>'+d.Description+'</td>'+
+		        '</tr>'+
+		    '</table>';
+		}	 
+		
+		   
+	    // Variables
+	    var objMain = $j('#main');
+	 
+	    // Show sidebar
+	    function showSidebar(){
+	        objMain.addClass('use-sidebar');
+	    }
+	 
+	    // Hide sidebar
+	    function hideSidebar(){
+	        objMain.removeClass('use-sidebar');
+	    }
+
+	    // Sidebar separator
+	    var objSeparator = $j('#separator');
+	 
+	    objSeparator.click(function(e) {
+	        e.preventDefault();
+	        if ( objMain.hasClass('use-sidebar') ) {
+	            hideSidebar();
+	        }
+	        else {
+	            showSidebar();
+	        }
+	        
+	        redrawTable();
+	    }).css('height', objSeparator.parent().outerHeight() + 'px');
+		  
+    	/** Refreshes the Case table every 30 seconds
+    	 */
+    	setInterval( function () {
+	    		table.DataTable().ajax.reload('', false);
+		}, 120000 );
+		  
+	 
+	  }); // end jquery
+	
+	  google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart4);
+      
+      google.load('visualization', '1', {packages:['table']});
+      google.setOnLoadCallback(drawTable);
+      
+      function drawChart4() {
+        var data = google.visualization.arrayToDataTable({!JSONString_CaseChart});
+        
+        var options = {
+	        height: 150,
+	        legend: { position: "top" },
+	        colors: ['#00af00', '#FAEF87', '#ffa500', '#fd4336'],
+			bar: { groupWidth: '97%' },
+			annotations: {
+				textStyle: {
+					fontSize: 14,
+					bold: true,
+					italic: true,
+					color: 'black'
+				}
+			},
+	        isStacked: true,
+	        backgroundColor: {fill: 'white'},
+	        hAxis: {title: '',
+	        		viewWindow: { max: 100},
+	        		ticks: [],
+	        		baselineColor: 'white',
+	        		baseline: '-1',
+	        		logScale: false
+	        		}
+     	};
+   
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div4'));
+        chart.draw(data, options);
+        
+      }
+      
+      function drawTable() {
+      	
+      	var cssClassNames = {
+      	
+		    'headerRow': 'tableCellHeader',
+		    'tableRow': 'tableRowText',
+		    'oddTableRow': 'tableRowText',
+		    'selectedTableRow': 'tableRowText',
+		    'hoverTableRow': 'tableRowTextHover',
+		    'headerCell': 'tableCellHeader',
+		    'tableCell': 'tableRowText',
+		    'rowNumberCell': 'tableRowText'
+		};
+      
+        var data = new google.visualization.DataTable();
+        var sum = {!promoC}+{!unaC}+{!in_PC};
+        
+        data.addColumn('string', 'Totals');
+        data.addRows(4);
+        data.setCell(0, 0, ({!in_PC}).toString());
+        data.setCell(1, 0, ({!unaC}).toString());
+        data.setCell(2, 0, ({!promoC}).toString());
+        data.setCell(3, 0, sum.toString());
+        
+        var table = new google.visualization.Table(document.getElementById('chart_div5'));
+        table.draw(data, {showRowNumber: false, 'cssClassNames': cssClassNames,
+																sort: 'disable'});
+      }
+	
+	
+	</script>
+
+</apex:page>

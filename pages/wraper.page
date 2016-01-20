@@ -1,0 +1,308 @@
+<apex:page controller="test_c"   id="page1" readOnly="true" >
+
+<pbe:PageBlockTableEnhancerADV targetPbTableIds="familyDtls,familyDtls23" paginate="true" defaultPageSize="5" pageSizeOptions="5,10,20,30,40,50,100" />
+<!--
+<apex:form >
+        <apex:actionPoller action="{!incrementCounter}" rerender="familyDtls" interval="5"/>
+        <apex:actionPoller action="{!incrementCounter}" rerender="familyDtls23" interval="5"/>
+        
+</apex:form>
+-->
+ <apex:pageBlock title="STATES-Real Time" mode="detail" >
+               <apex:panelGrid columns="2" id="theGrid2">    
+               
+                            <apex:pageBlockSection >          
+                                <apex:pageBlockTable value="{!user}" var="c" title="Case Origin Daily Count" headerClass="headerStyle" id="familyDtls" 
+                                align="left" style="border-width:thin;border-style:solid;width:30%;border-color:gray;"> >   
+                            
+                                    <apex:column >
+                                    <apex:facet name="header">Name</apex:facet>
+                                        {!c['agent']}
+                                   </apex:column>
+                                
+                                   <apex:column style="background-color:{!IF(c.state = 'Available','#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">Current</apex:facet>
+                                        {!c['state']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Origin</apex:facet>
+                                        {!c['origin']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Source</apex:facet>
+                                        {!c['source']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Status</apex:facet>
+                                        {!c['status']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Handle Time</apex:facet>
+                                        {!c['handleTime']}
+                                   </apex:column>
+                                   
+                                   
+
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Person ID</apex:facet>
+                                        {!c['person_id']}
+                                   </apex:column>
+
+                                   
+                                                                
+                                  
+                                   
+                            </apex:pageBlockTable>
+                           </apex:pageBlockSection>
+                           
+                           <apex:pageBlockSection >          
+                                <apex:pageBlockTable value="{!Hours}" var="c" title="Cases Touched by Hour" headerClass="headerStyle" id="familyDtls23" 
+                                align="left" style="border-width:thin;border-style:solid;width:30%;border-color:gray;"> >   
+                            
+                            
+                                    <apex:column >
+                                    <apex:facet name="header">Agent</apex:facet>
+                                        {!c['agent']}
+                                   </apex:column>
+                                
+                            
+                                    <apex:column >
+                                    <apex:facet name="header">7AM</apex:facet>
+                                        {!c['h7']}
+                                   </apex:column>
+                                
+                                   <apex:column style="background-color:{!IF(c.h8 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">8AM</apex:facet>
+                                        {!c['h8']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="background-color:{!IF(c.h9 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">9AM</apex:facet>
+                                        {!c['h9']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="background-color:{!IF(c.h10 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">10AM</apex:facet>
+                                        {!c['h10']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="background-color:{!IF(c.h11 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">11AM</apex:facet>
+                                        {!c['h11']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="background-color:{!IF(c.h12 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">12:PM</apex:facet>
+                                        {!c['h12']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="background-color:{!IF(c.h1 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">1:PM</apex:facet>
+                                        {!c['h1']}
+                                   </apex:column>
+                                   
+
+                                   <apex:column style="background-color:{!IF(c.h2 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">2:PM</apex:facet>
+                                        {!c['h2']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="background-color:{!IF(c.h3 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">3:PM</apex:facet>
+                                        {!c['h3']}
+                                   </apex:column>
+                                   
+                                    <apex:column style="background-color:{!IF(c.h4 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">4:PM</apex:facet>
+                                        {!c['h4']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="background-color:{!IF(c.h5 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">5:PM</apex:facet>
+                                        {!c['h5']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="background-color:{!IF(c.h6 > 0,'#7CFC00', '#FFA07A')}">
+                                    <apex:facet name="header">6:PM</apex:facet>
+                                        {!c['h6']}
+                                   </apex:column>
+                              
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Total Cases Touched</apex:facet>
+                                        {!c['total']}
+                                   </apex:column>
+                              
+                              
+                              
+                              
+                                   
+                                 
+                                   
+                            </apex:pageBlockTable>
+                           </apex:pageBlockSection>
+
+               </apex:panelGrid>
+             
+             
+    </apex:pageBlock>
+
+
+
+    
+     <apex:pageBlock title="CRT Real Time View- Age in Hours" mode="detail" >
+               <apex:panelGrid columns="1" id="theGrid2">    
+               
+                            <apex:pageBlockSection >          
+                                <apex:pageBlockTable value="{!agg}" var="c" title="Case Origin Daily Count" headerClass="headerStyle" id="familyDtls" 
+                                align="left" style="border-width:thin;border-style:solid;width:30%;border-color:gray;"> >   
+                            
+                                    <apex:column >
+                                    <apex:facet name="header">Origin</apex:facet>
+                                        {!c['Origin']}
+                                   </apex:column>
+                                
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Source</apex:facet>
+                                        {!c['source']}
+                                   </apex:column>
+                                   
+                                                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Priority</apex:facet>
+                                        {!c['priority']}
+                                   </apex:column>
+                                                                                                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Queue</apex:facet>
+                                        {!c['queue']}
+                                   </apex:column>
+                                                                                                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Unassigned</apex:facet>
+                                        {!c['unassigned']}
+                                   </apex:column>
+                                                                                           
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">InProgress</apex:facet>
+                                        {!c['inprogress']}
+                                   </apex:column>
+                                   
+                                                                                                                              
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Promoted</apex:facet>
+                                        {!c['promoted']}
+                                   </apex:column>
+                                   
+                                                                                                                              
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Closed</apex:facet>
+                                        {!c['closed']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Avg Handle Time</apex:facet>
+                                        {!c['avghandle']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Min Handle Time</apex:facet>
+                                        {!c['minHandle']}
+                                   </apex:column>
+                                   
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Max Handle Time</apex:facet>
+                                        {!c['maxHandle']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Oldest Unassigned Case</apex:facet>
+                                        {!c['oldestC']}
+                                   </apex:column>
+                                   
+                                   
+                            </apex:pageBlockTable>
+                           </apex:pageBlockSection>
+
+               </apex:panelGrid>
+             
+             
+    </apex:pageBlock>
+    
+    <apex:pageBlock title="CRT Intra Day Stats- Age in Hours" mode="detail" >
+               <apex:panelGrid columns="1" id="theGrid12">    
+               
+                            <apex:pageBlockSection >          
+                                <apex:pageBlockTable value="{!AgentStats}" var="c" title="Case Origin Daily Count" headerClass="headerStyle" id="familyDtls" 
+                                align="left" style="border-width:thin;border-style:solid;width:30%;border-color:gray;"> >   
+                            
+                                    <apex:column >
+                                    <apex:facet name="header">Name</apex:facet>
+                                        {!c['agent']}
+                                   </apex:column>
+            
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Queue</apex:facet>
+                                        {!c['queue']}
+                                   </apex:column>
+                                                                                                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Unassigned</apex:facet>
+                                        {!c['unassigned']}
+                                   </apex:column>
+                                                                                           
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">InProgress</apex:facet>
+                                        {!c['inprogress']}
+                                   </apex:column>
+                                   
+                                                                                                                              
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Promoted</apex:facet>
+                                        {!c['promoted']}
+                                   </apex:column>
+                                   
+                                                                                                                              
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Closed</apex:facet>
+                                        {!c['closed']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Avg Handle Time</apex:facet>
+                                        {!c['avghandle']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Min Handle Time</apex:facet>
+                                        {!c['minHandle']}
+                                   </apex:column>
+                                   
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Max Handle Time</apex:facet>
+                                        {!c['maxHandle']}
+                                   </apex:column>
+                                   
+                                   <apex:column style="text-align:center;">
+                                    <apex:facet name="header">Oldest Case</apex:facet>
+                                        {!c['oldestC']}
+                                   </apex:column>
+                                   
+                                   
+                            </apex:pageBlockTable>
+                           </apex:pageBlockSection>
+
+               </apex:panelGrid>
+             
+             
+    </apex:pageBlock>
+
+ 
+
+</apex:page>

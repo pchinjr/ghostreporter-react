@@ -1,0 +1,178 @@
+<apex:page controller="test_c"  docType="xhtml-1.0-strict" id="page1" readOnly="true"    sidebar="false">
+ <meta http-equiv="X-UA-Compatible" content="IE=9" />
+ 
+ 
+<!--<pbe:PageBlockTableEnhancerADV targetPbTableIds="test, tbl1" paginate="true" defaultPageSize="100" pageSizeOptions="5,10,20,30,40,50,100" /> 
+<pbe:PageBlockTableEnhancerADV targetPbTableIds="tbl2"   paginate="true" defaultPageSize="100" pageSizeOptions="5,10,20,30,40,50,100" enableExport="False"/> 
+
+-->
+
+<apex:form >
+        <apex:actionPoller action="{!incrementCounter}" rerender="block1" interval="5"/>
+        
+        
+</apex:form>
+
+    <apex:variable var="u1" value="{!user}" />
+
+   <vs:importvisualstrap />  
+   <vs:visualstrapblock id="block1" > 
+       <vs:row id="row1">  
+                 <vs:column type="col-lg-6" id="row1col1">    
+                       <vs:panel title="Agent State" type="primary">  
+                                 <vs:row >
+                                 <center>
+                                    <vs:column type="col-lg-6">
+                                      <vs:well style="background-color:{!IF(availUserCount > 0,'#00af00', '#FFCC00')}"> 
+                                      <vs:glyph icon="user" style="font-size:30px"/> &nbsp;<span style="font-size:30px">{!availUserCount}</span>  
+                                      <p>Available Agents</p>
+                                        </vs:well>  
+                                     </vs:column>
+                                        <vs:column type="col-lg-6">
+                                         <vs:well style="background-color:{!IF(unavailUserCount > 0,'#FFCC00', '#00af00')}"> 
+                                         <vs:glyph icon="user" style="font-size:30px"/> &nbsp;<span style="font-size:30px;text:'#000000' ">{!unavailUserCount}</span>  
+                                      <p>UnAvailable Agents</p>
+                                
+                                      </vs:well> 
+                                      </vs:column>
+                                 </center>      
+                                  </vs:row>
+                                  <vs:row >
+                                   <apex:dataTable id="tbl1" value="{!user}" var="u" width="100%" styleClass="table table-condensed table-curved table-hover table-bordered table table-striped">
+                                        <apex:column value="{!u.agent}" headerValue="Agent"  style="background-color:{!IF(u.state = 'Available','#00af00', '#fd4336')}" />
+                                        <apex:column value="{!u.state}" headerValue="State" />
+                                        <apex:column value="{!u.origin}" headerValue="Origin" />
+                                        <apex:column value="{!u.source}" headerValue="Source" />
+                                        <apex:column value="{!u.status}" headerValue="Status" />
+                                        <apex:column value="{!u.handletime}" headerValue="Handle Time" />
+                                        <apex:column value="{!u.availUserCount}" headerValue="Person ID" />
+                                        
+                                    </apex:dataTable>
+                              </vs:row>
+                         
+                              </vs:panel>  
+                          
+                    </vs:column>
+            
+  
+            <vs:column type="col-lg-6">        
+ 
+                          <vs:panel title="Agent Intra Day Totals" type="primary"  >  
+                             <center>
+                             
+                              <vs:row >
+                                <vs:column type="col-md-4">
+                                
+                                  <vs:well style="background-color:{!IF(Ruben > 0,'#33CC33', '#FFCC00')}">
+                                  <vs:glyph icon="user" style="font-size:40px"/> &nbsp;<span style="font-size:30px">{!Ruben}</span>  
+                                  <p>Ruben's Total</p>
+                               <span class="{!IF(Ruben=0, 'label label-warning','label label-success')}">{!IF(Ruben=0, 'Warning','Good')}</span>
+                             
+                                    </vs:well>  
+                                </vs:column>
+                                <vs:column type="col-md-4">
+                                     <vs:well style="background-color:{!IF(Alex > 0,'#33CC33', '#FFCC00')}">
+                                     <vs:glyph icon="user" style="font-size:40px"/> &nbsp;<span style="font-size:30px">{!Alex}</span>  
+                                  <p>Alex's Total</p>
+                                  <span class="{!IF(Alex=0, 'label label-warning','label label-success')}">{!IF(Alex=0, 'Warning','Good')}</span>
+                                  </vs:well>
+                                 </vs:column>
+                                 <vs:column type="col-md-4">
+                                  
+                                  <vs:well style="background-color:{!IF(Melinda > 0,'#33CC33', '#FFCC00')}">
+                                     <vs:glyph icon="user" style="font-size:40px"/> &nbsp;<span style="font-size:30px">{!Melinda}</span>  
+                                  <p>Melinda's Total</p>
+                                    <span class="{!IF(Melinda=0, 'label label-warning','label label-success')}">{!IF(Melinda=0, 'Warning','Good')}</span>
+                                  </vs:well>
+                                  </vs:column>
+                               </vs:row>   
+                              
+                         </center> 
+                         <vs:row >
+                           <apex:dataTable id="tbl2" value="{!Hours}" var="u" styleClass="table table-condensed table-hover table-bordered table table-striped">
+                                <apex:column value="{!u.agent}" headerValue="Agent" />
+                                <apex:column value="{!u.h7}" headerValue="7AM"   />
+                                <apex:column value="{!u.h8}" headerValue="8AM" style="background-color:{!IF(u.h8 > 0,'#00af00', '#fd4336')}" />
+                                <apex:column value="{!u.h9}" headerValue="9AM" style="background-color:{!IF(u.h9 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h10}" headerValue="10AM" style="background-color:{!IF(u.h10 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h11}" headerValue="11AM" style="background-color:{!IF(u.h11 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h12}" headerValue="12PM" style="background-color:{!IF(u.h12 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h1}" headerValue="1PM" style="background-color:{!IF(u.h1 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h2}" headerValue="2PM" style="background-color:{!IF(u.h2 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h3}" headerValue="3PM" style="background-color:{!IF(u.h3 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h4}" headerValue="4PM" style="background-color:{!IF(u.h4 > 0,'#00af00', '#fd4336')}"/>
+                                <apex:column value="{!u.h5}" headerValue="5PM" style="background-color:{!IF(u.h5 > 0,'#00af00', '#fd4336')}"/>             
+                                <apex:column value="{!u.h6}" headerValue="6PM" style="background-color:{!IF(u.h6 > 0,'#00af00', '#fd4336')}"/>           
+                                <apex:column value="{!u.total} "  headerValue="Totals"/>           
+                            </apex:dataTable>
+                         </vs:row>
+                     </vs:panel> 
+
+              </vs:column>
+             
+
+   </vs:row>       
+             
+ 
+  <vs:row >
+  <center>
+
+       
+        
+        
+           <vs:column type="col-sm-6"> 
+            <vs:panel title="Daily Stats" type="primary">
+             <vs:visualstrapblock >
+               <center>
+                       <apex:dataTable id="dstats" value="{!agg}" var="u" styleClass="table table-condensed table-hover table-curved table table-striped">
+                                 <apex:column value="{!u.origin}" headerValue="Org"   />
+                                 <apex:column value="{!u.source}" headerValue="Srce"   />
+                                 <apex:column value="{!u.priority}" headerValue="Prty"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                 <apex:column value="{!u.queue}" headerValue="Queue"   style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                 <apex:column value="{!u.unassigned}" headerValue="Unsd"   style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                 <apex:column value="{!u.inprogress}" headerValue="InPrs"   style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                 <apex:column value="{!u.promoted}" headerValue="Promd"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"   />
+                                 <apex:column value="{!u.closed}" headerValue="Clsd"   style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                 <apex:column value="{!u.avghandle}" headerValue="AvgHT"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"   />
+                                 <apex:column value="{!u.minhandle}" headerValue="MinHT"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"   />
+                                 <apex:column value="{!u.maxhandle}" headerValue="MaxHT"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"   />
+                                 <apex:column value="{!u.oldestC}" headerValue="OldUn"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"   />
+                       </apex:dataTable>
+            
+                </center>
+            </vs:visualstrapblock>
+            
+        </vs:panel>
+        </vs:column>
+        
+         
+          <vs:column type="col-sm-6"> 
+        
+          <vs:panel title="Agent Daily Stats" type="primary">
+               <apex:dataTable id="astats" value="{!AgentStats}" var="u" styleClass="table table-condensed table-hover table-curved table table-striped">
+                                   <apex:column value="{!u.agent}" headerValue="Name"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}" />
+                                   <apex:column value="{!u.queue}" headerValue="Queue" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.unassigned}" headerValue="Unsd" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.inprogress}" headerValue="InPrs" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.promoted}" headerValue="Prom" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.closed}" headerValue="Clsd"  style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}" />
+                                   <apex:column value="{!u.avghandle}" headerValue="AvgH" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.minHandle}" headerValue="MinHT" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                   <apex:column value="{!u.maxHandle}" headerValue="MaxHT" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                    <apex:column value="{!u.oldestC}" headerValue="OldT" style="background-color:{!IF(u.priority = 'Totals','#bdbdbd', null)}"  />
+                                    
+                </apex:dataTable>     
+                  </vs:panel>
+        </vs:column>
+ 
+</center>
+  
+  
+  
+</vs:row>
+
+ 
+<!-- Middle Section --> 
+
+    </vs:visualstrapblock> 
+</apex:page>

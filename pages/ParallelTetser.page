@@ -1,0 +1,27 @@
+<apex:page showHeader="true" sidebar="true" controller="ParallelController">
+	
+	<apex:form >
+		<apex:commandButton onclick="remotePTest();" value="testRace"/>
+		<apex:commandButton action="{!start}" value="testQueue"/>
+	</apex:form>
+
+	<script type="text/javascript">
+
+		function remotePTest () {
+			Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.ParallelController.lockTest}',
+	    		function(result, event) {
+	    			if (event.status == true && result == true ) {
+	    				alert("Executed affectively");
+	    			} else {
+	    				alert("retrying");
+	    				remotePTest(); 
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+		}
+
+	</script>
+	
+</apex:page>

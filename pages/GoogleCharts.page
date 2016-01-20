@@ -1,0 +1,74 @@
+<apex:page showHeader="true" sidebar="true" controller="GoogleChartsController">
+	
+	<apex:includeScript value="https://www.google.com/jsapi?autoload={
+            'modules':[{
+              'name':'visualization',
+              'version':'1',
+              'packages':['corechart']
+            }]
+          }" />
+
+    <div id="chartDiv">
+    	
+    </div>
+
+	<!-- <script type="text/javascript">
+
+
+	// google.setOnLoadCallback(drawChart);
+
+ //    function drawChart() {
+ //      var rows = [
+ //        ['Month', 'Count', 'Fiscal Year']
+ //      ];
+
+ //      var size = {!dataSize};
+
+ //      for (var i = 0; i < size; i++) {
+ //      	rows.push([{!data[i].pmonth}, {!data[i].ccount}, {!data[i].fy_actual__c});
+ //      }
+
+ //      var data = google.visualization.arrayToDataTable(rows);
+
+ //      var options = {
+ //        title: 'Company Performance',
+ //        curveType: 'function',
+ //        legend: { position: 'bottom' }
+ //      };
+
+ //      var chart = new google.visualization.LineChart(document.getElementById('chartDiv'));
+
+ //      chart.draw(data, options);
+
+ //  	}
+
+	</script> -->	
+
+	<script>
+
+		google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Year', 'Sales', 'Expenses'],
+          ['2004',  1000,      400],
+          ['2005',  1170,      460],
+          ['2006',  660,       1120],
+          ['2007',  1030,      540]
+        ]);
+
+        var options = {
+          title: 'Company Performance',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chartDiv'));
+
+        chart.draw(data, options);
+      }
+
+
+	</script>
+
+</apex:page>

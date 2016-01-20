@@ -1,0 +1,4 @@
+<apex:page controller="CRT_1Prd_Dash"  action="{!retrieveData}"
+    contentType="application/x-JavaScript; charset=utf-8" showHeader="false" standardStylesheets="false" sidebar="false">
+{!JSONString}
+</apex:page>

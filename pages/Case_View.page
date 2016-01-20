@@ -1,0 +1,23 @@
+<apex:Page tabStyle="Case" >
+<script src="/soap/ajax/15.0/connection.js"></script>
+<script type="text/javascript" />
+<script>
+     window.onload = function() {
+
+     sforce.connection.sessionId = '{!$Api.Session_ID}';
+
+     var describeSObjectResult = sforce.connection.describeSObject("case");
+     var prefix = describeSObjectResult.keyPrefix;
+
+     // Determine the View based on the Role of the User
+     var cView;
+     switch ( "{!$UserRole.Name}" ) {
+     default: cView = "00Bi0000001do8U"; break;
+     }
+
+     // Change the whole window to point to this location
+     parent.document.location.href = "/" + prefix + "?fcf=" + cView ;
+}
+</script>
+<center><h2>Please Wait ..... Loading 'Your' Tab</h2></center>
+</apex:page>

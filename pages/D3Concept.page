@@ -1,0 +1,72 @@
+<apex:page controller="JSONCreator" sidebar="false">	
+
+	<style>
+	.tableRows {
+		height:40px;
+	}
+	.tableCellHeader {
+		height:20px;
+		
+	}
+	</style>
+
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	
+
+		<table style="display:inline">
+			<tbody>
+				<tr>
+					<td>
+						<div id="chart_div4"></div>
+					</td>
+					<td>
+						<div id="chart_div5" style="top:-10px; left:-20px"></div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	<script>
+	  google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart4);
+      
+      google.load('visualization', '1', {packages:['table']});
+      google.setOnLoadCallback(drawTable);
+      
+      function drawChart4() {
+        var data = google.visualization.arrayToDataTable({!JSONString});
+
+        var options = {
+	        width: 650,
+	        height: 200,
+	        legend: { position: 'top', maxLines: 4 },
+			bar: { groupWidth: '95%' },
+	        isStacked: true,
+	        hAxis: {title: 'Statuses of Cases (Percentage)',
+	        		viewWindow: {max: 100},
+	        		ticks: []
+	        		}
+     	};
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div4'));
+        chart.draw(data, options);
+      }
+      
+      function drawTable() {
+        var data = new google.visualization.DataTable({
+        	cols: [{id: 'totals', label: 'Totals', type: 'number'}],
+      		
+      		rows: [{c:[{v: {!lowP}}]},
+              	   {c:[{v:{!medP}}]},
+             	   {c:[{v:{!hiP}}]}
+             ]  
+        });
+        
+        var table = new google.visualization.Table(document.getElementById('chart_div5'));
+        table.draw(data, {showRowNumber: false, cssClassNames: {tableCell: 'tableRows', headerCell: 'tableCellHeader'}, sort: 'disable'});
+      }
+      
+	  
+	</script>
+	
+</apex:page>

@@ -1,0 +1,18 @@
+<apex:page >
+    <style>
+    	.tableHeader{background-color:#3F51B5}
+        #sideColumn{ 	
+        	background-color:#2196F3; 
+        	float:left; 
+        	width:500px
+        }
+    </style>
+   	<div>
+        <div id="sideColumn">
+            left
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</apex:page>

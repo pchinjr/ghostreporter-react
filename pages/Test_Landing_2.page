@@ -1,0 +1,65 @@
+<!-- Use the launchpad_controller class to handle
+		actions and calculate key variables -->
+
+<apex:page controller="Launchpad_Controller">
+	
+	<!-- Styling settings -->
+    <style type="text/css">
+        .col1 {width:230px; text-align:center;}
+        .col2 {width:700px; text-align:center;}
+        .col3 {width:220px; text-align:center;}       
+        .col4 {width:400px; text-align:center;}
+        .col5 {width:1000px;}
+        .col6 {width:200px;}
+        .row1 {height: 50px;}
+    </style>
+       
+    <apex:pagemessages />
+    
+    <!-- This is the main grid. The first column (left) contains case counts by priority and the case lists.
+		 The second (right) column contains events and tasks -->
+    <apex:panelGrid id="grid0" columns="2" columnClasses="col5, col6" border="0" cellpadding="1" cellspacing="5">
+    
+        <apex:panelGroup >
+        
+	        <apex:panelGrid id="grid1" bgColor="white" columns="3" columnClasses="col4" rowClasses="row1" border="0" cellpadding="1" cellspacing="5">
+	        	<apex:panelGrid id="grid4" columns="1">
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="High Priority Cases:"/>
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="{!highPriority}"/>
+	        	</apex:panelGrid>
+	        	<apex:panelGrid id="grid5" columns="1">
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="Medium Priority Cases:"/>
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="{!medPriority}"/>
+	        	</apex:panelGrid>
+	        	<apex:panelGrid id="grid6" columns="1">
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="Low Priority Cases:"/>
+	        		<apex:outputText style="font-weight:bold; font-size:x-large;" value="{!lowPriority}"/>
+	        	</apex:panelGrid>
+	        </apex:panelGrid>  
+			  
+            <apex:panelGrid id="grid2" bgColor="white" columnClasses="col5" columns="1" border="0" cellpadding="1" cellspacing="5">
+                
+                <!-- Relevant lists -->
+                <apex:enhancedList id="mycases" listid="00Bi0000001do8U" height="270" rowsPerPage="10" customizable="false"/>   
+                                
+                <!-- utility buttons --> 
+                <apex:panelGrid id="grid3" columns="2">
+	                <apex:form >
+						<apex:commandButton value="Start an unassigned case" action="{!findNextCaseUnassigned}" style="width:150px; height:40px;"/>
+					</apex:form>  
+                </apex:panelGrid>
+                
+                <apex:enhancedList id="caseQueue" listid="00Be0000000S6jf" height="270" rowsPerPage="10" customizable="false"/>
+                
+            </apex:panelGrid>   
+            
+        </apex:panelGroup>
+        
+        <apex:panelGroup >
+        
+	        <!-- Events and tasks -->
+	        <apex:enhancedList id="Activities" listid="00Bi0000001do8a" height="700" customizable="false" rendered="true"/>
+            
+        </apex:panelGroup>
+    </apex:panelGrid>
+</apex:page>

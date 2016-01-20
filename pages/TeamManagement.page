@@ -1,0 +1,420 @@
+<apex:page controller="TeamManagementController" sidebar="false">
+	<vs:importvisualstrap />
+	<apex:styleSheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" />
+	<apex:includeScript value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/js/bootstrap.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/css/bootstrap.css')}" />
+
+
+    <style type="text/css">
+
+    	.agentInformation {
+    		float: left; 
+    		padding-top: 20px;
+    		padding-left: 20px;
+    	}
+
+    	.checkBox {
+    		float: left;
+    		padding-left: 10px;
+    	}
+
+    	.inputText {
+    		float: left;
+    		padding-left: 10px;
+    	}
+
+    	.selectList {
+    		float: left;
+    		padding-left: 10px;
+    	}
+
+    	.mainDiv {
+    		padding-left: 15%;
+    		vertical-align: middle;
+    	}
+
+    	.radioButton {
+    		float: left;
+    		padding-left: 10px;
+    	}
+
+    	tr.spaceUnder > td {
+    		padding-bottom: 20px;
+    	}
+
+    </style>
+
+	<apex:form id="mainForm">
+
+		<div class="mainDiv">
+
+			<!-- table holding all input fields -->
+			<table id="inputTable">
+			<!--	<tr class="spaceUder">
+					<form>
+						<td style="padding-bottom:20px">
+							<input id="newRadio" class="radioButton" type="radio" name="inputType" onClick="setNewStyle(true)" value="new" >Add New Agent</input>
+						</td>
+						<td class="radioButton" style="padding-bottom:20px">
+							<input id="updateRadio" type="radio" name="inputType" onclick="setNewStyle(false)" value="update" >Update Agent</input>
+						</td>
+					</form> 
+				</tr> -->
+				<tr class="spaceUnder">
+					<td><apex:outputText value="Select Agent"/></td>
+					<td>
+						<div class="selectList">
+							<apex:outputPanel id="agentList">
+								<apex:selectList id="agentPicker" value="{!selectedAgentName}" size="1">
+									<apex:selectOptions value="{!AgentSelectList}"/>
+									<apex:actionSupport event="onchange" action="{!setAgentTeam}" reRender="agentInfo"/>
+								</apex:selectList>
+							</apex:outputPanel>
+						</div>
+					</td>
+				</tr>
+				<tr class="spaceUnder">
+					<td><apex:outputText value="Select Team"/></td>
+					<td>
+						<div class="selectList">
+							<apex:selectList id="teamPicker" value="{!selectedTeam}"  size="1">
+								<apex:selectOptions value="{!TeamSelectList}"/>
+							</apex:selectList>
+						</div>
+					</td>
+				</tr>
+			<!--	<tr class="spaceUnder">
+					<td><apex:outputText value="First Name"/></td>
+					<td>
+						<div class="inputText">
+							<input id="firstNameInput" type="text"/>
+						</div>
+					</td>
+				</tr>
+				<tr class="spaceUnder">
+					<td><apex:outputText value="Last Name"/></td>
+					<td>
+						<div class="inputText">
+							<input id="lastNameInput" type="text"/>
+						</div>
+					</td>
+				</tr>
+				<tr class="spaceUnder">
+					<td><apex:outputText value="PSERM ID" /></td>
+					<td>
+						<div class="inputText">
+							<input id="psermInput" type="text"/>
+						</div>
+					</td>
+				</tr> -->
+				<tr class="spaceUnder">
+					<td><apex:outputText value="Active?"/></td>
+					<td>
+						<div class="checkBox">
+							<input type="checkbox" id="isActiveSelector"/>
+						</div>
+					</td>
+				</tr>
+			</table>
+
+			<div>
+				<!-- <div style="float:left">
+				
+					<apex:commandButton id="addNewButton" value="Add New Agent" styleClass="btn btn-info btn-lg active"
+							onClick="insertAgentOnClick(); return false;" reRender="agentInfo"/>
+				</div> -->
+
+				<div style="float:left">
+					<apex:commandButton id="updateButton" value="Update Agent" styleClass="btn btn-primary btn-lg active"
+							onclick="updateAgentOnClick(); rerenderAgentList(); return false;" reRender="agentInfo" />
+				</div>
+				
+			</div>
+			<br></br>
+			<br></br>
+
+			<!-- action function whose only job is to rerender the output panel -->
+			<!-- action function to rerender agent list -->
+			<apex:actionFunction name="rerenderAgentList" action="{!resetAgentSelectList}" reRender="agentList" />
+			<!-- action function whose only job is to rerender the output panel, 
+					sends Id received from updateAgentOnclick -->
+			<apex:actionFunction name="setAddedAgentInfo" action="{!setAgentTeamSpecific}" reRender="agentInfo" >
+				<apex:param id="agentUniqueIdParam" name="uniqueId" value="" />
+			</apex:actionFunction>
+
+			<apex:actionFunction name="resetAgentInfo" action="{!resetAgentInfo}" reRender="agentInfo" />
+
+
+			<!-- Disyplay agent information -->
+			<apex:outputPanel id="agentInfo">
+				<div>
+					<div style="float:left">
+						<vs:visualstrapblock > 
+				            <vs:glyph icon="user" style="font-size:150px"/>
+				        </vs:visualstrapblock>
+			        </div>
+
+			        <div class="agentInformation">
+				        <!-- display agent information --> 
+				        <apex:outputField value="{!selectedAgent.fullName__c}" />
+				        <P></P>
+				        <apex:outputField value="{!selectedAgent.Team__c}" />
+				        <P></P>
+				        Active?
+				        <apex:outputField title="Active?" value="{!selectedAgent.isActive__c}" />
+			        </div>
+		        </div>
+
+	        </apex:outputPanel>
+        </div>
+    </apex:form>
+
+
+    <script>
+
+    	var j$ = jQuery.noConflict(); 
+
+
+    	/**
+    	* Gets called on page load, used to set some default values. 
+    	*/
+    	window.onload = function() {
+    		// var radioButton = document.getElementById("updateRadio");
+    		// radioButton.checked = true; 
+    		// setNewStyle(false); 
+
+    		//set isActive to checked
+    		checkIsActive(); 
+    	}
+
+
+    	/**
+    	* Checks inActive to true
+    	*/
+    	function checkIsActive() {
+    		var isActiveCheckBox = document.getElementById("isActiveSelector");
+    		isActiveCheckBox.checked = true; 
+    	}
+
+
+    	/**
+    	* Sets psermId input field to the selected agent's psermId
+    	*/
+    	function setPsermIdDisabled(isDisabled) {
+    		var psermInput = document.getElementById("psermInput");
+    		if(isDisabled == true) {
+    			psermInput.setAttribute("disabled", "disabled");
+    		} else {
+    			psermInput.removeAttribute("disabled"); 
+    		}
+    	}
+
+
+    	/**
+    	* Onclick remoting function for Add new agent
+    	* passes the filled in values to the controller method, and removes
+    	* the values that were written in there, if there were no values it will 
+    	* show an alert and highlight missing fields. 
+    	*
+    	* @author Mike McGee
+    	*/
+    	function insertAgentOnClick() {
+    		var firstName = document.getElementById('firstNameInput').value;
+    		var lastName = document.getElementById('lastNameInput').value;
+    		var psermId = document.getElementById('psermInput').value; 
+    		var isActive = document.getElementById('isActiveSelector').checked;
+    		var team = document.getElementById('{!$Component.mainForm.teamPicker}').value; 
+
+    		Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.TeamManagementController.addNewAgentOnClickListener}',
+	    		firstName, lastName, isActive, team, psermId,
+	    		function(result, event) {
+	    			if (event.status == true && result != null) {
+	    				document.getElementById('firstNameInput').value = ""; 
+	    				document.getElementById('lastNameInput').value = ""; 
+
+	    				//Calls action functions 
+	    				setAddedAgentInfo(result);
+	    				rerenderAgentList();
+
+	    			} else {
+	    				alert("First name, last name, and PSERM ID must have values");
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+    	}
+
+
+    	/**
+    	* OnClick for update agent 
+    	* calls update agent in contoller. Needed so that access to isActive is possible. 
+    	*
+    	* @author Mike McGee 
+    	*/
+    	function updateAgentOnClick() {
+    		var isActive = document.getElementById('isActiveSelector').checked;
+    		var agent = document.getElementById('{!$Component.mainForm.agentPicker}').value; 
+    		var team = document.getElementById('{!$Component.mainForm.teamPicker}').value; 
+
+    		//Changed name values
+    		// var firstName = document.getElementById('firstNameInput').value;
+    		// var lastName = document.getElementById('lastNameInput').value;
+
+    		// if (firstName.length > 0 || lastName.length > 0) {
+    		// 	updateNameAndTeam(isActive, agent, team, firstName, lastName);
+    		// } else {
+    		// 	updateTeamOnly(isActive, agent, team);
+    		// }
+
+    		updateTeamOnly(isActive, agent, team); 
+
+    	}
+
+
+    	/**
+    	* Updates team and isActive useing remoting call to controller. 
+    	* 
+    	* @author Mike McGee
+    	*/
+    	function updateTeamOnly(isActive, agent, team) {
+
+    		Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.TeamManagementController.updateAgentOnClick}',
+	    		isActive, agent, team,
+	    		function(result, event) {
+	    			if (event.status == true && result != null) {
+	    				 //Successful update
+
+	    				 //If agent was changed to inActive then move select list to top.
+	    				 if(isActive == false) {
+	    				 	setAgentPickList(0); 
+	    				 }
+
+	    				 //Calls action function rerederAgentInfo
+	    				 console.log("Result is : "+result); 
+	    				 setAddedAgentInfo(result);
+	    				 rerenderAgentList();
+
+	    			} else {
+	    				//Not succesful
+	    				alert("Update was unsuccessful");
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+    	}
+
+
+    	/**
+    	* Updates name ans well as team and isActive
+    	*
+    	* @author Mike McGee
+    	*/
+    	function updateNameAndTeam(isActive, agent, team, firstName, lastName) {
+
+    		//Check to make sure that a change of name is desired. 
+    		var confirmed = window.confirm("Update agent name to "+firstName+" "+lastName+"?");
+    		if (confirmed == false) {
+    			return; 
+    		} else {
+
+    			Visualforce.remoting.Manager.invokeAction(
+		    		'{!$RemoteAction.TeamManagementController.updateAgentWithNameOnClick}',
+		    		isActive, agent, team, firstName, lastName,
+		    		function(result, event) {
+		    			if (event.status == true && result != null) {
+		    				//Successful update
+
+		    				//If agent was changed to inActive then move select list to top. 
+		    				if(isActive == false) {
+		    				 	setAgentPickList(0); 
+		    				 }
+		    				 
+		    				 //Calls action function rerederAgentInfo
+		    				 console.log("Result is : "+result);
+		    				 clearNameFields(); 
+		    				 setAgentPickList(0);
+		    				 rerenderAgentList(); 
+		    				 setAddedAgentInfo(result);
+
+		    			} else {
+		    				//Not succesful
+		    				alert("Update was unsuccessful");
+		    			}
+		    		},
+		    		{escape: true}
+
+		    	); //end of remoting call. 
+
+    		} //end of else 
+    	}
+
+
+    	/**
+    	* Sets name fields to empty string. 
+    	*/
+    	function clearNameFields() {
+    		var firstNameField = document.getElementById("firstNameInput");
+    		var lastNameField = document.getElementById("lastNameInput"); 
+    		firstNameField.value = "";
+    		lastNameField.value = ""; 
+    	}
+
+
+    	/**
+    	* Sets the agent picklist to the value passed in 
+    	*/
+    	function setAgentPickList(index) {
+    		var agentPickList = document.getElementById('{!$Component.mainForm.agentPicker}');
+    		agentPickList.options[index].selected = true; 
+    	}
+
+
+    	var isUpdate; 
+    	var isNew;
+
+    	/**
+    	* disables certain input fields according to the value passed in
+    	*/
+    	function setNewStyle(isNewStyle) {
+
+    		var AgentSelectList = document.getElementById('{!$Component.mainForm.agentPicker}');
+    		var TeamSelectList = document.getElementById('{!$Component.mainForm.teamPicker}');
+    		var updateButton = document.getElementById('{!$Component.mainForm.updateButton}');
+    		var newAgeButton = document.getElementById('{!$Component.mainForm.addNewButton}');
+
+    		if (!isNewStyle) {
+    			//enable select lists and update button
+    			AgentSelectList.removeAttribute("disabled");
+    			updateButton.removeAttribute("disabled");
+
+    			//disable add new agent button. set isUpdate global
+    			newAgeButton.setAttribute("disabled", "disabled");
+    			isUpdate = true;
+    			isNew = false;
+
+    			//disable PSERMID input
+    			setPsermIdDisabled(true);
+
+    		} else {
+    			//enable new button 
+    			newAgeButton.removeAttribute("disabled");
+
+    			//enable PSERMID input
+    			setPsermIdDisabled(false);
+
+    			//Disable select lists, and update agent button, set global
+    			AgentSelectList.setAttribute("disabled", "disabled");
+    			updateButton.setAttribute("disabled", "disabled");
+    			isNew = true;
+    			isUpdate = false;
+
+    		} 
+    	}
+
+    	
+
+    </script>
+
+</apex:page>

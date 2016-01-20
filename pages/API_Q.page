@@ -1,0 +1,81 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false">
+   <apex:includeScript value="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js"/>
+   <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen"/>
+   <style>
+      .wrapper
+      {
+      text-align : center;
+      }
+   </style>
+   <!-- lets query Salesforce Contact using remoting objects -->
+   <!--Lets add up Amount field on Contact objects here using shorthand amt-->
+   <apex:remoteObjects >
+      <!--Name the field you like to query-->
+      <apex:remoteObjectModel name="Case" jsShorthand="acc" fields="Description,Status"/>
+   </apex:remoteObjects>
+   <!-- now address you field with shorthand -->
+   <script> 
+      function clearList()
+      {
+          if(!$('#cList').empty())
+          {
+              //if non-empty then clear list before every call
+              $('#cList').empty();
+          }
+      }
+      
+      var DML = function(){
+          //clear old list beforehand 
+          clearList();
+          //Instantiate a reference 
+          var data = new SObjectModel.acc();
+          //process the data received in return
+          data.retrieve({ limit: 100 } ,function(err, records){
+              //if failure
+              if(err) alert(err.message);
+              else {
+                  populate(records);       
+              }
+          });
+          
+          //Method to Pouplate Records
+          function populate(records)
+          {
+              var ul = document.getElementById("cList");
+              records.forEach(function(record) {
+                  // Build the text for a warehouse line item
+                  var toAdd = record.get("Description");
+                  var StatustoAdd = record.get("Status");
+                  // Add the line item to the warehouses list
+                  var rule = document.createElement("br");
+                  var li = document.createElement("li");
+                  li.appendChild(document.createTextNode(StatustoAdd + "-" + toAdd));
+                  ul.appendChild(li);
+                  ul.appendChild(rule);
+              });
+          }
+      }
+      
+   </script>
+   <div class="jumbotron">
+      <h1>Retrieve Contacts via Remote Objects</h1>
+      <p>via Oyecode</p>
+      <a href="#" class="list-group-item active">
+         <h4 class="list-group-item-heading">What is Remote Object?</h4>
+         <p class="list-group-item-text">Visualforce Remote Objects are proxy objects that allow basic DML operations on sObjects directly from JavaScript. Remote Objects take some of the complexity out of JavaScript remoting, by reducing the need for @RemoteAction methods in an Apex controller or extension. Like JavaScript remoting, <br/> Remote Objects calls don’t count towards API request limits.</p>
+      </a>
+      <br/>
+      <div class="wrapper">
+         <p> <button  class="btn btn-success btn-lg" onclick="DML()"> <span class="glyphicon glyphicon-star"></span>Pull 
+            Cases</button>
+         </p>
+      </div>
+   </div>
+   <a href="#" class="list-group-item active">
+   <span class="glyphicon glyphicon-list"></span> Accounts: 
+   </a>
+   <div class="wrapper">
+      <ul class="list-inline" id="cList">
+      </ul>
+   </div>
+</apex:page>

@@ -1,0 +1,24 @@
+<!-- Component holding a VisualForce line chart. Can only create chart with 
+     one value per category. -->
+<apex:component >
+
+    <apex:attribute name="data" description="The ChartDataWrapper being used"
+        type="ChartData[]" required="true" />
+    <apex:attribute name="bottomTitle" default="Categories" type="String"
+        required="false" description="Title for left side of chart"/>
+    <apex:attribute name="leftTitle" default="Data" type="String" 
+        required="false" description="Title for right side of chart"/>
+	
+    <apex:chart height="400" width="700" data="{!data}">
+		<apex:axis title="{!leftTitle}" type="Numeric" position="left" 
+            fields="value" minimum="0">
+        </apex:axis>
+        <apex:axis title="{!bottomTitle}" type="Category" position="bottom"
+            fields="categoryName">
+        </apex:axis>
+        <apex:BarSeries axis="left" xField="categoryName" yField="value"
+        	orientation="vertical">
+        </apex:BarSeries>
+    </apex:chart>
+
+</apex:component>

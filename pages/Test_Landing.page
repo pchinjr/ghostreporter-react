@@ -1,0 +1,6 @@
+<apex:page title="Cases" tabStyle="Case" sidebar="true" showHeader="true"> 
+    <apex:pageBlock title="New cases for {!$User.FirstName}">
+        <apex:enhancedList listid="00Be0000000S6jf" height="300" rowsPerPage="25" customizable="false"/>
+        <apex:enhancedList listid="00Bi0000001do8U" height="300" rowsPerPage="10" customizable="false"/> 
+    </apex:pageBlock>
+</apex:page>

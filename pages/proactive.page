@@ -1,0 +1,22 @@
+<apex:page standardController="ProActive_Prod__c" >
+  <!-- Begin Default Content REMOVE THIS -->
+  <h1>Welcome {!$User.FirstName}  </h1>
+  
+  <chatter:feed entityId="{!ProActive_Prod__c.id}" rendered="true" />
+  
+  <apex:pagemessages ></apex:pagemessages>
+  
+  <apex:form >
+  <apex:pageBlock > 
+  <apex:pageBlockSection columns="2">  </apex:pageBlockSection>
+  <apex:pageBlockSection title="Active Cases">  </apex:pageBlockSection>
+  
+  <apex:pageBlockSection title="Customer Section">
+      <apex:inputField value="{!ProActive_Prod__c.Account_ID__c}"/>
+  
+  </apex:pageBlockSection>
+  </apex:pageBlock>
+  </apex:form>
+  
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

@@ -9,12 +9,10 @@ var App = React.createClass({
       data: []
     };
   },
-  
   componentWillMount: function() {
     var firebaseRef = new Firebase('https://ghostreact.firebaseio.com/ghosts');
     this.bindAsArray(firebaseRef, 'data');
   },
-  
   render: function() {
     return (
       <div>
@@ -98,7 +96,7 @@ var GhostForm = React.createClass({
   },
   render: function() {
     return (
-      <form className="form-group col-md-6" onSubmit={this.handleSubmit}>
+      <form className="form-group" onSubmit={this.handleSubmit}>
         <div className="form-group">
             <label className=" control-label">Ghost Name</label>
             <input

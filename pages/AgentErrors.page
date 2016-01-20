@@ -1,0 +1,736 @@
+<apex:page showHeader="true" sidebar="true" controller="AgentErrorsController">
+	
+	<apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/jquery-2.1.3.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/js/bootstrap.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/css/bootstrap.css')}" />
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'/>
+    <!-- <apex:includeScript value="{!URLFOR($Resource.AgentErrors, 'AgentErrors/AgentErrors.js')}" /> -->
+    <!-- <apex:stylesheet value="{!URLFOR($Resource.AgentErrors, 'AgentErrors/ErrorStyling.css')}" /> -->
+
+	<!-- Styling -->
+	<style type="text/css">
+		
+		.mainDiv {
+			padding-left: 75px;
+			width: 900px;
+			float: left;
+		}
+
+		.reportDiv {
+			padding-left: 75px;
+			width: 900px;
+			float: left;
+		}
+
+		.title {
+			width: 100%;
+			padding-left: 75px;
+			color: #004D40;
+			font-family: 'Roboto', sans-serif;
+			font-size: 32px;
+			font-weight: 600;
+			margin: 5px;  
+			text-shadow: 2px 2px rgba(0, 0, 0, 0.2);
+			float: left;
+		}
+
+		.dropdown {
+		    display:inline-block;
+		    margin:5px;
+		    position: relative;
+		    padding:0;
+		    border:0;
+		    border-radius:5px;
+		    font-size:18px;
+		    font-family: 'Roboto', sans-serif;
+		    font-weight:400;
+		    background:#F0F4F5;
+		    color:#000;
+		    box-shadow: 0px 8px 17px 0px rgba(0, 0, 0, 0.2), 0px 6px 20px 0px rgba(0, 0, 0, 0.19);
+		}
+
+		.dateSelect {
+			display:inline-block;
+		    margin:5px;
+		    position: relative;
+		    padding:0;
+		    border:0;
+		    border-radius:5px;
+		    font-size:18px;
+		    font-family: 'Roboto', sans-serif;
+		    font-weight:400;
+		    background:#F0F4F5;
+		    color:#000;
+		    box-shadow: 0px 8px 17px 0px rgba(0, 0, 0, 0.2), 0px 6px 20px 0px rgba(0, 0, 0, 0.19);
+		}
+
+		.errorInput {
+			width: 250px
+		    position: relative;
+		    padding:20px;
+		    border:0;
+		    border-radius:5px;
+		    font-size:14px;
+		    font-family: 'Roboto', sans-serif;
+		    background:#F0F4F5;
+		    color:#000;
+		}
+
+		tr.spaceUnder > td {
+    		padding-bottom: 20px;
+    	}
+
+    	.label {
+    		font-size:18px;
+		    font-family: 'Roboto', sans-serif;
+		    font-weight:300;
+		    color: black; 
+    	}
+    	
+        .commentBox {
+        	width:500px !important;
+        }
+        
+        .saveButton {
+        	padding: 25px;
+        	widht: 500px;
+        }
+
+        .myActiveTab {
+	        background-color: #00BCD4; 
+	        color:white; 
+	        background-image:none;
+	        font-size: 18px;
+    	}
+    
+	    .myInactiveTab {
+	        background-color: #B2EBF2; 
+	        color:black; 
+	        background-image:none;
+	        font-size: 18px;
+	    }
+
+	    .printingDiv {
+	    	float: left;
+	    	font-size: 200%;
+	    	display: none;
+	    }
+
+	    .button {
+		  font: bold 11px Arial;
+		  text-decoration: none;
+		  background-color: #EEEEEE;
+		  color: #333333;
+		  padding: 2px 6px 2px 6px;
+		  border-top: 1px solid #CCCCCC;
+		  border-right: 1px solid #333333;
+		  border-bottom: 1px solid #333333;
+		  border-left: 1px solid #CCCCCC;
+		}
+
+	</style>
+
+	
+	<apex:form id="mainForm">
+		<!-- Add some kind of title thing here -->
+		<div class="title">Agent Errors</div>
+
+		<apex:pageBlock id="mainBlock">
+			<apex:tabPanel switchType="client" selectedTab="input" id="theTabPanel" tabClass="myActiveTab" inactiveTabClass="myInactiveTab">
+				<apex:tab id="inputTab" label="Input" name="input">
+					<!-- Page layout -->
+					<div class="mainDiv">
+
+							<!-- Agent selector -->
+							<div class="form-group">
+								<apex:selectList styleClass="dropdown" id="agentPicker" value="{!selectedAgentName}" size="1">
+									<apex:selectOptions value="{!AgentSelectList}"/>
+								</apex:selectList>
+								<span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+							</div>
+
+							<!-- Date selector -->
+							<div class="form-group">
+								<apex:inputField styleClass="dateSelect" id="date" value="{!agentErrors.Date__c}" />
+								<span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+							</div>
+
+							<!-- isEmailAgent -->
+							<div class="form-group">
+								<div class="label">Email Agent?</div>
+								<input class="dropdown" type="checkbox" id="isEmailSelector" onclick="getErrors();" disabled="true" />
+							</div>
+
+							<!-- Errors table needs to change based off of if email agent -->
+							<apex:pageBlock id="errorInputs">
+								<apex:dataTable id="errorTable" value="{!errors}" var="error" styleClass="table lg right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped" >
+									<apex:column id="errorName" title="{!error.name}" value="{!error.displayName}" headerValue="Error"/>							
+									<apex:column id="inputColumn">
+										<apex:commandButton value="+{!error.PointsPerClick}" id="addButton" onclick="remoteUpdate({!error.PointsPerClick}, this.id);" rerender="errorInputs"></apex:commandButton>
+										<!--<apex:inputText style="text-align:center" id="inputError" value="{!error.value}"/>-->
+		                                <apex:inputText style="text-align:center"  id="inputError"/>
+		                                <!--<input id="inputError" style="test-align:center" /> -->
+										<apex:commandButton id="subButton" value="-{! if (error.PointsPerClick/5 < 1, 1, if (error.PointsPerClick == 5, 5, CEILING(error.PointsPerClick / 5)))}"
+		                                                    onclick="remoteUpdate({! if (error.PointsPerClick/5 < 1, -1, if (error.PointsPerClick == 5, 5,CEILING(error.PointsPerClick / 5)) * -1)}, this.id);"
+		                                                    rerender="errorInputs">
+										</apex:commandButton>
+									</apex:column>
+								</apex:dataTable>
+							</apex:pageBlock>
+		                
+		                <!-- Comments -->
+		                <div class="commentBox">
+		                    <apex:outputLabel styleClass="label" value="Comments" />
+		                    <br></br>
+		                    <apex:inputField styleClass="commentBox" id="comments" value="{!agentErrors.Comments__c}"/> 
+		                </div>   
+
+		                <!-- Reviewer select list -->
+		                <div style="padding-top:25px">
+		                	<apex:outputLabel styleClass="label" value="Reviewer" />
+		                	<br></br>
+		                	<apex:inputField id="reviewer" value="{!agentErrors.Reviewer__c}" />
+		                </div>
+		                
+		                <!-- Agent type selector -->
+		                <div style="padding-top:25px">
+		                    <apex:outputLabel styleClass="label" value="Agent Type" />
+		                    <br style="padding-top:4px"></br>
+		                    <apex:inputField id="agentType" value="{!agentErrors.Agent__r.AgentType__c}"/>
+		                </div>
+		                
+		                <!-- Save Button -->
+		                <div class="saveButton">
+		                    <apex:commandButton id="saveButton" styleClass="btn btn-success btn-block active" value="Save" onclick="save();return false;"/>
+		                </div>
+		                
+					</div>
+				</apex:tab>
+
+				<!-- Reports Tab -->
+				<apex:tab id="reportTab" label="Reports" name="report">
+
+					<!-- <h1 style="padding-bottom:20px">Reports</h1> -->
+					<br></br>
+					<div>
+						<!-- Page layout -->
+						<div class="mainDiv" style="float:left">
+							<h2>Print email reports</h2>
+							<!-- Agent selector -->
+							<div class="form-group">
+								<apex:selectList styleClass="dropdown" id="print_agentPicker" value="{!selectedAgentName}" size="1">
+									<apex:selectOptions value="{!AgentSelectList}"/>
+								</apex:selectList>
+								<span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+							</div>
+							
+							<!-- Date selector -->
+							<div class="form-group">
+								<apex:inputField styleClass="dateSelect" id="print_datePicker" value="{!printErrors.Date__c}" 
+									onchange="setAvailReports()"/>
+								<span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+							</div>
+
+							<!-- Available Reports -->
+							<div id="availReports" class="form-group">
+								
+							</div>
+
+							<!-- print button -->
+							<!-- <div>
+								<apex:commandButton value="Print Email Eval" id="printButton" onclick="startPrint();return false;" styleClass="btn btn-info btn-lg active"/>
+							</div> -->
+							<br></br>
+							<br></br>
+							<br></br>
+							<apex:pageBlockSection columns="1">
+							<h2>Other reports</h2>
+							<apex:panelGrid columns="2">
+								<apex:commandButton value="Other Reports" id="btnReports" onclick="openReports();return false;" styleClass="btn btn-warning btn-lg active"/>
+								<!-- <a href="https://cs15.salesforce.com/00le0000000jFaD" id="btnReportsLink" class="button">Reports</a> -->
+								<apex:commandButton value="Service Order Accuracy Reports"
+									id="btn_soa" onclick="openSOA();return false;"
+									styleClass="btn btn-success btn-lg active"/>
+							</apex:panelGrid>
+							</apex:pageBlockSection>
+						</div>
+
+					<!-- This is the display for the printing page. It is hidden until the print button is clicked. -->
+					<br></br>
+						<div id="printingDiv" class="printingDiv">
+						    <p><strong>Name: <span id="nameSpan">This would be the name</span> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Date: <span id="dateSpan"> 09/18/2015</span>&nbsp;</strong></p>
+						    <p>&nbsp;</p>
+						    <p><strong>Errors:&nbsp;</strong></p>
+						    <table class="table lg right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+						        <tbody>
+						            <tr>
+						                <td>Professional Salutation</td>
+						                <td id="salutError" style="padding-left:25px">5</td>
+						            </tr>
+						            <tr>
+						                <td>Paragraph: logical coherence</td>
+						                <td id="logicError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Sentence structure</td>
+						                <td id="structureError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Spelling</td>
+						                <td id="spellError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Punctuation</td>
+						                <td id="punctError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Grammar</td>
+						                <td id="grammarError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>First contact resolution</td>
+						                <td id="fcResError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Content: Accuracy</td>
+						                <td id="accurError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Tone</td>
+						                <td id="toneError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						            <tr>
+						                <td>Proper closing</td>
+						                <td id="closingError" style="padding-left:25px">&nbsp;</td>
+						            </tr>
+						        </tbody>
+						    </table>
+						    <p>Total: <span id="totalSpan" style="padding-left:25px"></span></p>
+						    <p></p>
+						    <p></p>
+						  	<p>Comments:</p>
+						  	<p><span id="commentSpan"></span></p>
+						    <p>&nbsp;</p>
+						    <p></p>
+						  	<p>Reviewer:<span id="reviewerSpan"></span></p>
+						    <p>&nbsp;</p>
+						    <p><strong>Scoring:</strong></p>
+						    <p>Quality Components 1, 2, 9, 10: Response for Yes (5 points) or No (0 points).&nbsp;</p>
+						    <p>Quality Components 3, 4, 5, 6 : Minus 2 points for each flaw.&nbsp;</p>
+						    <p>Quality Components 7, 8: Minus 4 points for each flaw.&nbsp;</p>
+						    <p>&nbsp;</p>
+						    <p><strong>Report created date:&nbsp;<span id="createdDateSpan">09/18/2015</span></strong></p>
+						</div>
+					</div>
+
+				</apex:tab>
+
+			</apex:tabPanel>
+		</apex:pageBlock>
+
+		<apex:actionFunction name="getNewErrors" reRender="errorInputs" action="{!setErrors}">
+			<apex:param id="isEmail" name="isEmail" value="" />
+		</apex:actionFunction>
+
+		<apex:actionFunction name="rerenderTable" reRender="errorInputs" />
+        
+	</apex:form>
+
+	<!-- Remote object used to access reviewer name in javascript -->
+	<apex:remoteObjects jsNamespace="RemoteObjectModel">
+	    <apex:remoteObjectModel name="User" fields="Id,Name">
+	    </apex:remoteObjectModel>
+	</apex:remoteObjects>
+
+	
+	<!-- Eventually move Javascript to a static resource --> 
+	<script type="text/javascript">
+
+		// Need this so that the tab panels will work
+		var j$ = jQuery.noConflict();
+		j$(document).ready(function() {	
+			var btnReports = j$('#btnReportsLink');
+			btnReports.button();
+            checkEmailAgentBox(true);
+		});
+		
+		// marks the Email Agent box as the value passed in
+		function checkEmailAgentBox(isChecked) {
+        	var checkBox = document.getElementById('isEmailSelector');
+            checkBox.checked = true;
+        }
+
+    	// Changes the errors list based off on the isEmail checkbox
+		function getErrors() {
+			var isEmail = document.getElementById('isEmailSelector').checked;
+			getNewErrors(isEmail);
+		}
+    	
+    	// Have to implement endsWith yourself because IE does not support this method	
+    	if (!String.prototype.endsWith) {
+          String.prototype.endsWith = function(searchString, position) {
+              var subjectString = this.toString();
+              if (position === undefined || position > subjectString.length) {
+                position = subjectString.length;
+              }
+              position -= searchString.length;
+              var lastIndex = subjectString.indexOf(searchString, position);
+              return lastIndex !== -1 && lastIndex === position;
+          };
+        }
+		
+    	// Updates the values of the text fields 
+    	function remoteUpdate(toAdd, elementId) {
+            var elId = elementId.valueOf();
+        	console.log("element id: " + elId);
+            console.log("input element id should be " +elId.replace("addButton", "inputError"));
+            var inputId;
+            if (elId.endsWith("addButton")) {
+            	inputId = elId.replace("addButton", "inputError");	    
+         	} else {
+            	inputId = elId.replace("subButton", "inputError");
+            }
+            var inputField = document.getElementById(inputId);
+            var inputValue = isNaN(parseInt(inputField.value)) ? 0: parseInt(inputField.value); 
+            var newValue = inputValue + toAdd >= 0 ? inputValue + toAdd : 0; 
+            inputField.value = newValue; 
+            console.log("current input value = " +inputValue);
+        }
+    
+    	/**
+         * OnClick for save button. Sends all of the necessary information
+         * to the controller to create a new AgentErrors object. Then resets 
+         * the values of all of the fields.
+         */
+    	function save() {
+            
+            // List containing all values of inputs
+            var values = new Array(); 
+            // List containing all of the names of the errors
+            var names = new Array(); 
+            // The selected agent 
+            var agent; 
+            // The date that is selected
+            var date; 
+            // the comments 
+            var comments; 
+            // The agent type selected
+            var agentType; 
+            // Is email agent
+            var isEmail; 
+            
+            // Reset all field
+            var inputTable = document.getElementById('{!$Component.mainForm.mainBlock.errorInputs.errorTable}');
+            console.log("row length = "+inputTable.rows.length);
+			for (var i = 0, j = inputTable.rows.length; i < j; ++i) {
+				/*
+ 					Consider changing to inputTable.id+":"+i+"inputError"; etc..
+				*/
+                var valueId = "j_id0:mainForm:mainBlock:errorInputs:errorTable:"+i+":inputError";
+                var errorDisplay = "j_id0:mainForm:mainBlock:errorInputs:errorTable:"+i+":errorName";
+            	var input = document.getElementById(valueId);
+                var displayName = document.getElementById(errorDisplay);
+                var inputVal;
+                if (input != null) {
+                	inputVal = isNaN(parseInt(input.value)) ? 0: parseInt(input.value);
+                	//inputVal = input.value; 
+                    var errorName = displayName.title; 
+                    console.log("input value = "+inputVal);
+                    // Add to lists here
+                    values.push(inputVal);
+                    names.push(errorName);
+                    // reset all fiels
+                    input.value = "";
+                }
+            }
+            // reset all other fields. 
+            var agentSelector = document.getElementById('{!$Component.mainForm.mainBlock.agentPicker}');
+            agent = agentSelector.options[agentSelector.selectedIndex].value; 
+            agentSelector.options[0].selected = true; 
+            var commentElem = document.getElementById('{!$Component.mainForm.mainBlock.comments}');
+			comments = commentElem.value; 
+            commentElem.value = "";
+            var dateElem = document.getElementById('{!$Component.mainForm.mainBlock.date}');
+            date = dateElem.value; 
+            var agentTypeElem = document.getElementById('{!$Component.mainForm.mainBlock.agentType}');
+            agentType = agentTypeElem.value; 
+			var isEMailElem = document.getElementById("isEmailSelector");
+            isEmail = isEMailElem.checked; 
+            var reviewer = document.getElementById('{!$Component.mainForm.mainBlock.reviewer}').value;
+            
+			console.log("Information that would be sent to be saved "+ values +" "+ names+" "+agent+" "+date+" "+comments+" "+agentType+" "+isEmail);  
+            
+            asyncSave(values, names, agent, date, comments, agentType, isEmail, reviewer);
+        }
+    
+    	// Calls remote save methos in controller. 
+    	function asyncSave(values, names, agent, date, comments, agentType, isEmail, reviewer) {
+        	Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.AgentErrorsController.save}',
+	    		values, names, agent, date, comments, agentType, isEmail, reviewer,
+	    		function(result, event) {
+	    			if (event.status == true) {
+						
+	    			} else {
+	    				alert("Previous save attempt for agent "+result+" was not successful");
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+        }
+        
+        /**
+         * gets the value of the date selected for printing and calls th getNewErrors action function
+         */
+		function startPrint() {
+            // Get the values for agent name and date. 
+            var printAgeNameSelector = document.getElementById('{!$Component.mainForm.mainBlock.print_agentPicker}');
+            var agentName = printAgeNameSelector.options[printAgeNameSelector.selectedIndex].value;
+            var date = document.getElementById('{!$Component.mainForm.mainBlock.print_datePicker}').value; 
+            
+            Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.AgentErrorsController.getNewErrors}',
+                agentName, date,
+	    		function(result, event) {
+	    			if (event.status == true) {
+						console.log("The result looks like : "+result);
+                        // You can access the values of the AgentErrors object that was returned as if it was Apex. 
+                        if (result == null) {
+                        	alert("No information for selected values"); 
+                        } else {
+                        	buildPrintPage(result);
+                        }
+	    			} else {
+	    				alert("Something broke :(\n"+event.message);
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+            // getNewErrors();
+            // buildPrintPage();
+        }
+
+		/**
+         * Opens the email agents print evaluation for printing. 
+         */
+		function buildPrintPage(agentErrors) {
+			// Set the printing div to display; 
+			document.getElementById('printingDiv').style.display = "inline";
+            // Get all of the agent's errors and format according to old procedure. 
+            // Set all of the spans and td texts in printingDiv to their correct vals.
+            var printAgeNameSelector = document.getElementById('{!$Component.mainForm.mainBlock.print_agentPicker}');
+            var agentName = printAgeNameSelector.options[printAgeNameSelector.selectedIndex].text;
+            document.getElementById('nameSpan').textContent = agentName;
+            // Date__c comes in as millaseconds since epoch, so you must convert to date. 
+            var utcSeconds = agentErrors.Date__c; 
+            console.log(utcSeconds);
+            var d = new Date(utcSeconds); // Setting the date at zero makes it the epoch
+            //d.setUTCSeconds(utcSeconds / 1000); // add the correct seconds.
+            // Convert d to mm/dd/yyyy
+            d = toMMddYYYY(d);
+            document.getElementById('dateSpan').textContent = d;
+            document.getElementById('salutError').textContent = agentErrors.Email_Salutation__c;
+            document.getElementById('logicError').textContent = agentErrors.Email_Paragraph__c;
+            document.getElementById('structureError').textContent = agentErrors.Email_Sentence__c;
+            document.getElementById('spellError').textContent = agentErrors.Email_Spelling__c;
+            document.getElementById('punctError').textContent = agentErrors.Email_Punctuation__c;
+            document.getElementById('grammarError').textContent = agentErrors.Email_Grammar__c;
+            document.getElementById('fcResError').textContent = agentErrors.Email_FirstContactResolution__c;
+            document.getElementById('accurError').textContent = agentErrors.Email_Content__c;
+            document.getElementById('toneError').textContent = agentErrors.Email_Tone__c;
+            document.getElementById('closingError').textContent = agentErrors.Email_ProperClosing__c;
+            document.getElementById('commentSpan').textContent = agentErrors.Comments__c; 
+            document.getElementById('totalSpan').textContent = agentErrors.EmailTotal__c; 
+            console.log("Reviewer outside of oModel is: "+agentErrors.Reviewer__c);
+            
+            // Get todays date
+            var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+
+			if(dd<10) {
+			    dd='0'+dd
+			} 
+
+			if(mm<10) {
+			    mm='0'+mm
+			} 
+
+			today = mm+'/'+dd+'/'+yyyy;
+            document.getElementById('createdDateSpan').textContent = today;
+
+
+            if (agentErrors.Reviewer__c != undefined) {
+            
+	            // Need to use remote object to set reviewer name
+	            var user = new RemoteObjectModel.User() // Instantiate object model
+	            user.retrieve( 
+	            	{ 
+	            		where:{
+	            		Id: {eq: agentErrors.Reviewer__c}
+	            		}
+	            	}, function(err, records){
+	            		console.log("Reviewer ID is: "+agentErrors.Reviewer__c);
+	            		if(err) {
+	            			alert(err);
+	            		} else {
+	            			console.log(records[0]);
+	            			console.log("User name: "+records[0].get('Name'));
+	            			document.getElementById('reviewerSpan').textContent = ' '+records[0].get('Name');
+	            			w = window.open();
+				            w.document.write(j$('.printingDiv').html());
+				            w.document.close();
+	            			w.focus();
+				            w.print();
+				            w.close();
+	            		}
+	            	}
+	            );
+        	} else {
+        		document.getElementById('reviewerSpan').textContent = "";
+        		w = window.open();
+	            w.document.write(j$('.printingDiv').html());
+	            w.document.close();
+	            w.focus();
+	            w.print();
+	            w.close();
+        	}
+
+            //Print the contents 
+         //    if (!msieversion()) {
+         //    	w = window.open();
+        	// } else {
+        	// 	w = window.open("_self")
+        	// }
+        	
+        }
+
+        // Converts passed in date to mm/dd/yyyy format
+        function toMMddYYYY(date) {
+        	var dd = date.getDate()+1; // Starts at 0
+			var mm = date.getMonth()+1; //January is 0!
+			var yyyy = date.getFullYear();
+
+			if(dd<10) {
+			    dd='0'+dd
+			} 
+
+			if(mm<10) {
+			    mm='0'+mm
+			} 
+
+			date = mm+'/'+dd+'/'+yyyy;
+			return date; 
+        }
+
+
+        // Opens the reports folder in a new window. 
+        // Consider moving to controller method so that URL is not in page?
+        function openReports() {
+        	// if (msieversion()) {
+        	// 	alert('Opening in this page');
+        	// 	window.open("https://cs15.salesforce.com/00le0000000jFaD", '_self');
+        	// } else {
+        	// 	alert('Opening in new page');
+        	// 	window.open("https://cs15.salesforce.com/00le0000000jFaD");
+        	// }
+        	//window.open("https://cs15.salesforce.com/00le0000000jFaD");
+        	var qmFolderLink = "{!qmFolderLink}";
+        	window.open(qmFolderLink);
+        }
+
+
+        function openSOA() {
+        	window.open("/apex/ServiceOrderAccuracyReport");
+        }
+
+        /*
+         * Checks what browser the user is using
+         * @return true if using IE, false otherwise. 
+         */
+        function msieversion() {
+
+		    var ua = window.navigator.userAgent;
+		    var msie = ua.indexOf("MSIE ");
+	        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer, return version number
+		        return true;
+		    else                 // If another browser, return 0
+		        return false;
+		}
+
+
+
+		/**
+		 * Fills the available reports div with the result returned from the 
+		 * getAvailReports query in the controller.
+		 */
+		function setAvailReports() {
+			// Get the values for agent name and date. 
+            var printAgeNameSelector = 
+            	document.getElementById(
+            		'{!$Component.mainForm.mainBlock.print_agentPicker}'
+            		);
+            
+            var agentName = printAgeNameSelector
+            			.options[printAgeNameSelector.selectedIndex].value;
+            
+            var date = document.getElementById('{!$Component.mainForm.mainBlock.print_datePicker}').value;  
+
+			Visualforce.remoting.Manager.invokeAction(
+	    		'{!$RemoteAction.AgentErrorsController.getAvailReports}',
+                agentName, date,
+	    		function(result, event) {
+	    			if (event.status == true) {
+						console.log("The result looks like : "+result);
+                        // You can access the values of the AgentErrors object that was returned as if it was Apex. 
+                        if (result == null) {
+                        	// alert("No information for selected values"); 
+                        } else {
+                        	var availReports = 
+                        		document.getElementById('availReports');
+                            availReports.innerHTML = '';
+                    		var header = document.createElement('h4');
+                    		header.innerHTML = "Avaliable Reports";
+                    		availReports.appendChild(header);
+                    		availReports.appendChild(document.createElement('br'));
+							console.log("The available reports", result);
+                            for (var i = 0; i < result.length; ++i) {
+                            	console.log("Split: ", result[i]);
+                                var dateString = result[i].slice(result[i].indexOf(':')+1, result[i].length);
+                                console.log("Sliced",dateString);
+                                var ref = document.createElement('BUTTON');
+                                ref.Id = 'btnPrint'+i;
+                                var refText = "Report Available: "+dateString;
+                                ref.innerHTML = refText;
+                                ref.style.fontSize = 20+'px';
+                                ref.onclick = function() {
+                                	var dateInput = document.getElementById('{!$Component.mainForm.mainBlock.print_datePicker}');
+                                    var btnString = this.innerHTML;
+                                    console.log("btnString", btnString);
+                                    var dateString = btnString.slice(btnString.indexOf(':')+2, btnString.length);
+                                    console.log("Date String onClick", dateString);
+                                    dateInput.value = dateString;
+                                    startPrint();
+                                    return false;
+                                };
+                                ref.className = "btn btn-info btn-lg active";
+                                
+                                // Apppend new link to div.
+                                availReports.appendChild(ref);
+                                availReports.appendChild(document.createElement('br'));
+                                //availReports.innerHTML = availReports.innerHTML + ref +"<br></br>";
+                            }
+                            //availReports.innerHTML = result;
+                        }
+	    			} else {
+	    				alert("Something broke :(\n"+event.message);
+	    			}
+	    		},
+	    		{escape: true}
+	    	);
+		}
+    	
+	</script>
+
+</apex:page>

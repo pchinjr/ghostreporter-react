@@ -1,0 +1,290 @@
+<apex:page controller="OpsController"  sidebar="false">
+<style>
+    .col1 {width:230px; text-align:center;}
+    .col2 {width:700px; text-align:center;}
+    .col3 {width:100px; text-align:center;}       
+    .col4 {width:43%; text-align:center; align-self:center;}
+    .col5 {width:100%;  text-align:center;}
+    .col6 {width:200px;}
+    .row1 {height: 50px;}
+	
+	.startButton {
+		width:160px;
+		height:25px;
+		position:relative;
+		top:0px;
+		
+	}
+	.startButtonForm {
+		text-align:center;
+	    width:152px;
+	    height:32px;
+	    z-index:2;
+	}
+
+	#content,#sidebar {
+	    line-height: normal;
+	    text-align: center;
+	    border: 1px solid; 
+	}
+	 
+	#sidebar {
+	    background-color: white;
+	    border-color: white;
+	    border-left: 0px;
+	    position:relative;
+	    top:4px;
+	    
+	    display: none;
+	}
+	#content {
+	    background-color: white;
+	    border-color: white;
+	    width: 98%;
+	}
+	 
+	.use-sidebar #content {width: 75%;}
+	.use-sidebar #sidebar {
+	    display: block;
+	    width: 23%;
+	}
+	
+	.buttonAvailableState {
+		background: #74BF79;
+		color:black;
+		opacity: 1.0;
+	}
+	
+	.buttonUnavailableState {
+		background: #FF9999;
+		color:black;
+		opacity: 1.0;
+	}
+	
+	.buttonGrayedOutState {
+		background: #DADADA;
+		color: black;
+	}
+	
+	.sidebar-at-left #sidebar {margin-right: 0%;}
+	.sidebar-at-right #sidebar {margin-left: 0%;}
+	 
+	.sidebar-at-left #content, .use-sidebar.sidebar-at-right #sidebar, .sidebar-at-right #separator {float: right;}
+	.sidebar-at-right #content, .use-sidebar.sidebar-at-left #sidebar, .sidebar-at-left #separator {float: left;}
+	 
+	#separator {
+		background-image:url('{!URLFOR($Resource.vertlinerev, '')}');
+	    background-color: white;
+	    background-repeat: no-repeat;
+	    background-position: right center;
+	    display: block;
+	    outline: none;
+	    width: 1.5%;
+	    height:56px;
+	    opacity:0.5;
+	    position:relative;
+	    top:40px;
+	}
+	.use-sidebar #separator {
+		background-image:url('{!URLFOR($Resource.vertline, '')}');
+	    border-color: #FFF;
+	}
+	#separator:hover {
+	    opacity:1.0;
+	}
+	
+	
+	
+	td.details-control {
+	    background: url('{!URLFOR($Resource.detailsopen, '')}') no-repeat center center;
+	    cursor: pointer;
+	}
+	tr.shown td.details-control {
+	    background: url('{!URLFOR($Resource.detailsclose, '')}') no-repeat center center;
+	}
+	
+	.tableRows {
+		text-align: center;
+		height:20px;
+	}
+	.tableCellHeader {
+		height:22px;
+		font-style:bold;
+		font-size:18px;
+		text-align: center;
+	}
+	
+	.tableRowText {
+		height:26px;
+		font-style:bold;
+		font-size:14px;		
+		text-align: center;
+	}
+	
+	.tableRowTextHover {
+		font-style:bold;
+		font-size:14px;		
+		text-align: center;
+		background-color: lightgray;
+	}
+
+	#progressbar {
+		margin-top: 20px;
+	}
+	.progress-label {
+		font-weight: bold;
+		text-shadow: 1px 1px 0 #fff;
+	}
+	.ui-dialog-titlebar-close {
+		display: none;
+	}
+	
+</style>
+	
+	<!-- Include jQuery UI CSS theme -->
+	<apex:stylesheet value="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css"/>
+	
+	<!-- Include Chosen select menu CSS -->
+	<apex:stylesheet value="{!URLFOR($Resource.chosen, 'chosen.css')}"/>
+	
+	<!-- Include DataTables CSS libraries -->
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/css/jquery.dataTables_themeroller.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/KeyTable/css/dataTables.keyTable.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/ColReorder/css/dataTables.colReorder.css')}"/>
+
+	<div class="use-sidebar sidebar-at-right" id="main">
+	
+		<table border="0" width="100%" style="display:inline; table-layout:fixed;">
+			<tbody>
+				<tr>
+					<th style="width:700px; ">
+						<div id="chart_div4" style="width:100%;"></div>
+					</th>
+					<th style="width:60px;">
+						<div id="chart_div5" style="width:100%; left:-10px"></div>
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	     
+	    <div id="content">
+	        <!-- Relevant lists -->
+            
+
+			
+			<apex:outputPanel id="lists" styleClass="#content" layout="block">									
+				<apex:form >	
+			        <table title="Case List" cellpadding="0" cellspacing="0" border="0" class="display" id="tblid" width="100%">
+			            <thead>
+				            <tr>
+				            	<th></th>
+				                <th>agent</th> <!-- 1 -->
+				                <th>origin</th> <!-- 2 -->
+				                <th>source</th> <!-- 3 -->
+				                <th>person_id</th> <!-- 4 -->
+				                <th>handletime</th> 
+				             
+		
+			                </tr>
+			            </thead>
+			            <tbody></tbody>
+			        </table>  	
+	 			 </apex:form>
+ 			 </apex:outputPanel>
+		</div>
+	</div>	
+	
+	
+	
+		<!-- Include libraries for jQuery & jQuery UI -->
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-1.11.1.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-ui-1.10.4.js')}"/>	
+	
+	<!-- Include library for DataTables -->
+	<apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/js/jquery.dataTables.js')}"/>
+	
+	<!-- Include library for Chosen (select menu jQuery plugin) -->
+	<apex:includescript value="{!URLFOR($Resource.chosen, 'chosen.jquery.js')}"/>
+	
+	<!-- Include library for DataTables keytables -->
+	<apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/KeyTable/js/dataTables.keyTable.js')}"/>
+	
+	<!-- Include library for DataTables column reorder -->
+	<apex:includescript value="{!URLFOR($Resource.colreorder2, '')}"/>
+	
+	
+	<!-- Include Google Javascript API library -->
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	
+
+<script> 
+	
+	/* Replace "$." with "$j." to call JQuery API
+	 * so it doesn't conflict with Salesforce
+	 */
+	$j = jQuery.noConflict();
+	
+	/*
+	 * Runs once the page is loaded
+	 */
+	$j(document).ready(function() {	    
+		
+		 
+		
+		var table = $j('#tblid'); // #tblid is the id of the Case table
+		
+
+		// Readjust columns to use maximum space, then redraw the chart
+	 	function redrawTable() {
+	 		table.DataTable().columns.adjust().draw(false);
+	 	}
+		
+		// Change the default pointer to a hand
+		$j('#tblid').css( 'cursor', 'pointer' );
+		
+		table.dataTable({
+			"columns": [ { // column 0
+				"class":          'details-control',
+                "orderable":      false,
+                "data":           null,
+                "defaultContent": ''
+			},
+            { "data": "agent" }, // column 1
+            { "data": "origin" }, // column 2
+            { "data": "source" },
+            { "data": "person_id" },
+            { "data": "handleTime" }
+            
+        	],
+			 
+            "lengthMenu": [[ 10, 25, 50, 100, 250, 500, -1 ], [ 10, 25, 50, 100, 250, 500, "All" ]], // Sets the available "Show X entries" options
+        	"scrollY":        450, // Set the height of the table to 450, scroll vertically when appropriate
+        	"scrollX": 800,
+        	"scrollCollapse": false, // Don't collapse the table to the contents
+            "Processing"   : true, // Do the processing client-side
+            "jQueryUI": 	true, // Use the JQuery themeroller to style the table
+        	"pagingType": 	"simple_numbers",  // Set the paging options to show "Previous" "Next" and page numbers
+            "ServerSide"   : false, // Don't do serverside processing
+            "order": [[2, 'asc'], // Initialize the table with columns 2 (priority) and 6 (CR_Date) sorted
+            "ajax"   : '{OpsController}' // Source of the JSON
+	    } );
+	    
+	    // Initialize ColReorder on table1 to allow reordering the columns
+	    var table1_reorder = new $j.fn.dataTable.ColReorder( table.DataTable() );
+	    
+	    // Initialize table to show 100 items
+	    table.DataTable().page.len(100).draw();
+	    
+	   
+	    // Initialize KeyTable on the case table
+	    //var keys_table1 = new $j.fn.dataTable.KeyTable( table.DataTable() );
+	    
+	    // Runs when enter is pressed, navigate to the selected case if not on the first column
+	    // Otherwise, expand/collapse the child rows
+	    
+</script>
+	
+	
+ 
+
+</apex:page>

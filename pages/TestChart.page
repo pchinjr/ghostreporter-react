@@ -1,0 +1,19 @@
+<apex:page controller="AJAXController" >
+<!-- Begin Default Content REMOVE THIS -->
+<h1>Congratulations</h1>
+This is your new Page
+<apex:chart data="{!JSONString_CaseChart}" height="400" width="400">
+    <apex:legend position="left"/>
+    <apex:axis type="Numeric" position="left" title="Status" grid="true"
+        fields="data1,data2,data3" dashSize="2">
+        <apex:chartLabel />
+    </apex:axis>
+    <apex:axis type="Category" position="bottom" fields="name" title="Stacked Bars">
+        <apex:chartLabel rotate="315"/>
+    </apex:axis>
+    <apex:barSeries orientation="vertical" axis="left" stacked="true" 
+     xField="name" yField="data1,data2,data3" title="MacDonald,Promas,Worle"/>
+
+</apex:chart>
+<!-- End Default Content REMOVE THIS -->
+</apex:page>

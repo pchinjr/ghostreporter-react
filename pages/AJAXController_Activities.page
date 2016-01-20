@@ -1,0 +1,4 @@
+<apex:page controller="AJAXController"  action="{!retrieveActivitiesData}"
+    contentType="application/x-JavaScript; charset=utf-8" showHeader="false" standardStylesheets="false" sidebar="false">
+{!JSONString_Activities}  
+</apex:page>

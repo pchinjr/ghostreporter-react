@@ -1,0 +1,247 @@
+<apex:page >
+
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui10, '/jquery-ui-1.10.4.custom/js/jquery-1.10.2.js')}" />    
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui10, '/jquery-ui-1.10.4.custom/js/jquery-ui-1.10.4.min.js')}" />
+    
+    <apex:includeScript value="{!URLFOR($Resource.D3, '/d3.js')}" />
+    <apex:styleSheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/knockout-2.2.1.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/globalize.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/dx.chartjs.js')}" />
+
+
+
+    <script>
+    var j$ = jQuery.noConflict();
+
+    //On Page load
+    j$(function() {
+
+        createBullet('OverallContainer', 'Metric 1', '33',45);
+        createSquareBullet('EpicContainer', 'Metric 2', '12', 56.2);
+        createCircleBullet('CernerContainer', 'Metric 3', '12', 39);
+        createBullet('RemContainer', 'Metric 4', '54', 66);
+
+
+    });
+
+    function createBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:900,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'textCloud',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    function createCircleBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:900,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'circle',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    function createSquareBullet(divId, title, nps, nvalue){
+        j$("#" + divId).dxLinearGauge({
+            scale: {
+                startValue: 0,
+                endValue: 100,
+                
+                label: {
+                    indentFromTick: 7
+                },
+                majorTick: {
+                    showCalculatedTicks: false,
+                    customTickValues: [0, 17, 30, 100],
+                    color: "#000"           
+                }
+            },
+
+            title: {
+                text: title,
+                font: {
+                    color:'#000',
+                    weight:900,
+                    size: 20
+                }
+            },
+
+            rangeContainer: {
+                backgroundColor: "blue",
+                ranges: [
+                    {
+                        startValue: 0,
+                        endValue: 17,
+                        color: "red"
+                    },
+                    {
+                        startValue: 17,
+                        endValue: 30,
+                        color: "orange"
+                    },
+                    {
+                        startValue: 30,
+                        endValue: 100,
+                        color: "green"
+                    }
+                ]
+            },
+
+            needles: [{ value: nps, color: "#000"}],      
+            markers: [{ value: nps, color: "#000"}],   
+            value: nvalue,
+            valueIndicator: {
+        		type: 'rectangle',
+        		color: '#8FBC8F'
+        	}
+
+        });
+    }
+
+
+    </script> 
+ 
+        <div class="Page-Wrap"  style="width: 30%;">
+            <div class="First-Line">
+                <div id="OverallContainer" class="Container" ></div> 
+            </div>
+            <div class="Lower-Line">
+                <div class="Lower-Left">
+                    <div class="Container-Wrapper">
+                        <div id="EpicContainer" class="Container"></div> 
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="CernerContainer" class="Container"></div> 
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="RemContainer" class="Container"></div>
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="NewTierAContainer" class="Container"></div>
+                    </div>  
+                    <div class="Container-Wrapper">
+                        <div id="NewTierBContainer" class="Container"></div>
+                    </div>
+                </div>  
+
+                <div class="Lower-Right">
+                    <div class="Container-Wrapper">
+                        <div id="DeployedContainer" class="Container"></div>
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="LargestContainer" class="Container"></div>
+                    </div>  
+                    <div class="Container-Wrapper">
+                        <div id="TierBContainer" class="Container"></div>
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="EMEARemediationContainer" class="Container"></div>
+                    </div>
+                    <div class="Container-Wrapper">
+                        <div id="EMEADeploymentContainer" class="Container"></div>
+                    </div>      
+                </div>      
+            </div>   
+        </div>
+
+    </apex:page>

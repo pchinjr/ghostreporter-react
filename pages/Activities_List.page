@@ -1,0 +1,173 @@
+<apex:page controller="AJAXController">
+
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/css/jquery.dataTables_themeroller.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/KeyTable/css/dataTables.keyTable.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/extensions/ColReorder/css/dataTables.colReorder.css')}"/>
+	<apex:stylesheet value="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css"/>
+	
+<style>
+	
+	td.details-control {
+	    background: url('{!URLFOR($Resource.detailsopen, '')}') no-repeat center center;
+	    cursor: pointer;
+	}
+	tr.shown td.details-control {
+	    background: url('{!URLFOR($Resource.detailsclose, '')}') no-repeat center center;
+	}
+	
+</style>
+
+	<apex:form > 
+		<apex:actionFunction name="redirect" action="{!getPageRef}" rerender="">
+			<apex:param name="firstParam" assignTo="{!objId}" value="" />
+			<apex:param name="secondParam" assignTo="{!objType}" value="" />
+		</apex:actionFunction>
+	</apex:form>
+	
+	<table cellpadding="0" cellspacing="0" border="0" class="display" id="tblid" width="100%">
+	            <thead>
+	            	<th></th>
+	            	<th>Date</th>
+	            	<th>Subject</th>
+	            	<th>Location</th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th></th>
+	            	<th>Starts</th>
+	            	<th></th>
+            	</thead>
+            	<tbody></tbody>
+     </table>
+     
+	<!-- include Salesforce Console integration API -->
+    <apex:includescript value="/support/console/31.0/integration.js"/>
+
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-1.11.1.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-ui-1.10.4.js')}"/>	
+	<apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/js/jquery.dataTables.js')}"/>
+	
+	<script>
+		$j = jQuery.noConflict();
+		
+		$j(document).ready(function() {	    
+			
+			var table = $j('#tblid');
+			
+			$j('#tblid').css( 'cursor', 'pointer' );
+		
+			table.dataTable({
+			    "columns": [ {
+						"class":          'details-control',
+		                "orderable":      false,
+		                "data":           null,
+		                "defaultContent": ''
+					},
+		            { "data": "ActivityDate" },
+		            { "data": "Subject" },
+		            { "data": "Location" },
+		            { "data": "Id" },
+		            { "data": "Created By" },
+		            { "data": "Description" },
+		            { "data": "Endtime" },
+		            { "data": "ContactName" },
+		            { "data": "Phone" },
+		            { "data": "Starttime" },
+		            { "data": "Type" }
+	            ],
+	            "columnDefs": [{
+	                "targets": [ 4,5,6,7,8,9,10,11 ],
+	                "visible": false
+	            }],
+	        	"scrollY":        455,
+	        	"pagingType": 	"simple",
+	        	"scrollCollapse": false,
+	            "Processing"   : true,
+	            "lengthChange" : false,
+	            "jQueryUI": 	true,
+	            "ServerSide"   : false,
+	            "order": [[1, 'asc']],
+	            "ajax"   : '{!$Page.AJAXController_Activities}'
+		    });
+			
+			// Enables hover/click functionality for the buttons
+		    function addButtonClasses() {
+		    	var button = $j('#button1');
+				button.hover(function() {
+					$j(this).addClass('ui-state-hover');
+				}, function() {
+					$j(this).removeClass('ui-state-hover');
+				});
+				
+				button.mousedown(function() {
+					$j(this).addClass('ui-state-active');
+				});
+				
+				button.mouseup(function() {
+					$j(this).removeClass('ui-state-active');
+				});
+				
+				button = $j('#button2');
+				button.hover(function() {
+					$j(this).addClass('ui-state-hover');
+				}, function() {
+					$j(this).removeClass('ui-state-hover');
+				});
+				
+				button.mousedown(function() {
+					$j(this).addClass('ui-state-active');
+				});
+				
+				button.mouseup(function() {
+					$j(this).removeClass('ui-state-active');
+				});
+		    }
+		    
+		    // Add event listener for opening and closing details
+		    $j('#tblid tbody').on('click', 'td.details-control', function () {
+		        var tr = $j(this).closest('tr');
+		        var row = table.DataTable().row( tr );
+		 
+		        if ( row.child.isShown() ) {
+		            // This row is already open - close it
+		            row.child.hide();
+		            tr.removeClass('shown');
+		        }
+		        else {
+		            // Open this row
+		            row.child( format2(row.data()) ).show();
+		            tr.addClass('shown');
+		        }
+		    } );   
+		    
+		    // Double click redirects the user to the event/task detail page
+	    	$j('#tblid tbody').on( 'dblclick', 'tr', function () {
+	            //redirect(table.DataTable().row(this).data().Id, 'Activity');
+	            sforce.console.openPrimaryTab(null, '/'+table.DataTable().row(this).data().Id+'?isdtp=vw', true);
+	    	});
+	
+			/* Formatting function for row details
+			 * Adds child rows to the activities table
+			 */
+			function format2 ( d ) {
+			    // `d` is the original data object for the row
+			    return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+			        '<tr>'+
+			        	'<td>Contact:</td>'+
+			            '<td>'+d.ContactName+'</td>'+
+			        '</tr>'+
+			        '<tr>'+
+			            '<td>Phone:</td>'+
+			            '<td>'+d.Phone+'</td>'+
+			        '</tr>'+
+			        '<tr>'+
+			            '<td>Description:</td>'+
+			            '<td>'+d.Description+'</td>'+
+			        '</tr>'+
+			    '</table>';
+			}
+		});
+	</script>
+</apex:page>

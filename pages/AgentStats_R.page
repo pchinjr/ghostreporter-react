@@ -1,0 +1,1256 @@
+<apex:page controller="agentController">
+ 
+
+<!-- <div>
+        <apex:enhancedList height="300" type="Agent__C" rowsPerPage="10" id="agentList" />
+    </div> -->
+    <div>
+        
+        <apex:form >
+            <apex:selectList value="{!selectedVal}" size="1"  > 
+                <apex:actionSupport event="onchange" action="{!putAgentStats}"/>
+                <apex:actionSupport event="onchange" action="{!buildCharts}"/>      
+                <apex:selectOptions value="{!AgentsList}" /> 
+            </apex:selectList>
+        </apex:form>
+        
+    </div>   
+    <div>
+        <apex:form >
+            <apex:selectList value="{!dateValue}" size="1"  > 
+                <apex:actionSupport event="onchange" action="{!putAgentStats}"/>
+                <apex:selectOptions value="{!DateList}" /> 
+            </apex:selectList>
+        </apex:form>
+    </div>
+
+
+    <style>
+   
+
+
+    </style>
+      
+       <div style="float: right">   
+      
+       <div id="ltable_div" ></div>
+       <div id="table_div" ></div>
+       </div>
+
+       <div style="white-space: nowrap">
+            <div id="CPDChart" style="display: inline-block;"></div>
+            <div id="AHTChart" style="display: inline-block;"></div>
+       </div>
+       <div style="white-space: nowrap float: right">
+            <div id="HTChart" style="display: inline-block;"></div>
+            <div id="CO7MChart" style="display: inline-block;"></div>
+       </div>     
+       <div style="white-space: nowrap float: right">
+            <div id="gauge_chart_div" style="display: inline-block;"></div>
+            <div id="ERRChart" style="display: inline-block;"></div>
+             <div id="ltable_div" style="display: inline-block;"> </div>
+        </div>
+
+        
+        
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+        
+        var width = 350; 
+        var height = 200; 
+        
+        var YTD_CPD;
+        var YTD_AHT;
+        var YTD_HT;
+        var YTD_CO7M;
+        var YTD_BPA;
+        var YTD_ERR;
+        var YTD_SA;
+        var YTD_FUT;
+
+        
+          google.load("visualization", "1.1", {packages:['gauge','table', 'line', 'bar','corechart']});
+          
+           
+          google.setOnLoadCallback(drawVisualization);  
+          
+          function drawVisualization()
+          {
+               drawGaugeChart()
+              //drawBPAChart(); 
+              drawAHTChart();
+              drawCPDChart();
+              drawCO7MChart();
+              drawERRChart();
+              drawHTChart();
+              drawTable();
+              //followTimeChart();
+              drawLegendTable();
+          }
+          
+           function drawLegendTable() {
+            var ldata = new google.visualization.DataTable();
+             
+            
+            ldata.addColumn('string', 'KPI Legend');
+            ldata.addColumn('string', '   ');
+            ldata.addColumn('string', '   ');
+          	ldata.addColumn('string', '   ');
+          	ldata.addColumn('string', '   ');
+          	
+          	ldata.addRows([
+                ['Unsatisfactory', 'Needs Improvement', 'Good', 'Superior', 'Outstanding' ]
+                ]);
+                
+            var ltable = new google.visualization.Table(document.getElementById('ltable_div'));
+          
+            ldata.setProperties(0, 0, {'style': 'background-color: #CC3300;'}); 
+            ldata.setProperties(0, 1, {'style': 'background-color: #ffeb3b;'}); 
+            ldata.setProperties(0, 2, {'style': 'background-color: #673ab7;'}); 
+            ldata.setProperties(0, 3, {'style': 'background-color: #0066FF;'}); 
+            ldata.setProperties(0, 4, {'style': 'background-color: #33CC00;'}); 
+            
+
+            
+			var options = { 
+				allowHtml: true, 
+				showRowNumber: false, 
+				width: 500, 
+				height:50, 
+				border:0 
+				}
+
+            ltable.draw(ldata,  options);    
+          
+           }
+    function drawGaugeChart() {
+
+        var data = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Memory', 80],
+          ['CPU', 55],
+          ['Network', 68]
+        ]);
+
+        var options = {
+          width: 400, height: 120,
+          redFrom: 90, redTo: 100,
+          yellowFrom:75, yellowTo: 90,
+          minorTicks: 5,
+          linear:true
+        };
+
+        var chart = new google.visualization.Gauge(document.getElementById('gauge_chart_div'));
+
+        chart.draw(data, options);
+
+        setInterval(function() {
+          data.setValue(0, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(data, options);
+        }, 13000);
+        setInterval(function() {
+          data.setValue(1, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(data, options);
+        }, 5000);
+        setInterval(function() {
+          data.setValue(2, 1, 60 + Math.round(20 * Math.random()));
+          chart.draw(data, options);
+        }, 26000);
+      }
+        
+          function drawTable() {
+             
+              //var teamName = {!agentTeam};
+              var teamName = 'Not Working';
+              var testInt = {!testInt2};
+              
+              var Contacts_Per_Day = {!Contacts_Per_Day};
+              var Average_Call_Handle_Time = {!Average_Call_Handle_Time};
+              var Hold_Time_Percent = {!Hold_Time_Percent};
+              var Call_Over_7_Minutes_Percent = {!Call_Over_7_Minutes_Percent};
+              var Quality_Score_BPA = {!Quality_Score_BPA};
+              var Quality_Error_Rate = {!Quality_Error_Rate};
+              var Schedule_Adherence_Percent = {!Schedule_Adherence_Percent};
+              var Other_Time = {!Other_Time};
+              var Communication_with_Sup = {!Communication_with_Sup};
+              var Teamwork = {!Teamwork};
+              var Dependability = {!Dependability};
+              var Follow_up_time_percent = {!Follow_up_time_percent};
+              var Job_Knowledge = {!Job_Knowledge};
+              var Resource_Management = {!Resource_Management};
+              //var Total_Points = {!Total_Points}; 
+              var Total_Points = 80;            
+              
+              var yearAvg = 50;
+              var dayScore = 60;
+              
+              YTD_SA = {!SA_average};
+              YTD_FUT = {!FUT_average};
+
+            var data = new google.visualization.DataTable();
+            var nothing = "_";
+            data.addColumn('string', 'Category' ) ;
+            data.addColumn('number', 'Prior Day Score');
+            data.addColumn('number', 'Month Score');
+            data.addColumn('number', 'Year AVG');
+
+            data.addRows([
+               
+                ['Contacts Per Day Handled (CPD)',  dayScore, Math.round(Contacts_Per_Day* 100) / 100, Math.round(YTD_CPD * 100) / 100],
+                ['Average Handle Times (seconds, m:ss)', (Math.floor(Math.random() * (300 - 20 + 1)) + 20)   ,  Math.round({!Average_Call_Handle_Time}* 100) / 100, Math.round(YTD_AHT* 100) / 100],
+                ['Hold Time (% time, Minutes Per Day)',  (Math.floor(Math.random() * (40 - 1 + 1)) + 1),  Math.round(Hold_Time_Percent* 100) / 100, Math.round(YTD_HT * 100) / 100],
+                ['Calls Over 7 minutes (% of calls, Based on 90 CPD total)',  (Math.floor(Math.random() * (19 - 1 + 1)) + 1), Math.round(Call_Over_7_Minutes_Percent* 100) / 100,   Math.round(YTD_CO7M * 100) / 100],
+                ['Quality (Call Mon % score)',  null ,  Math.round(Quality_Score_BPA* 100) / 100, Math.round(YTD_BPA * 100) / 100],
+                ['Quality (Error Rate - % score)',  null, Math.round(Quality_Error_Rate* 100) / 100, Math.round(YTD_ERR * 100) / 100],
+                ['Schedule Adherence (WFM % score)',  (Math.floor(Math.random() * (100 - 90 + 1)) + 90), Math.round(Schedule_Adherence_Percent* 100) / 100, Math.round(YTD_SA * 100) / 100],
+                ['Follow-up time (% of Time, Minutes Per Day)', (Math.floor(Math.random() * (10 - 1 + 1)) + 1), Math.round(Follow_up_time_percent* 100) / 100,  Math.round(YTD_FUT * 100) / 100],
+            ]);
+           
+            //data.setProperties(row, 1, {'style': 'background-color: #696969; font-size:20px;'});
+  
+          var table = new google.visualization.Table(document.getElementById('table_div'));
+
+
+
+          //var formatter = new google.visualization.ColorFormat();
+          //formatter.addRange(0, 1, 'white', 'red');
+          //formatter.addRange(1, null, 'black', '#33ff33');
+          
+          var datarows = data.length;
+           
+          var Points_ContactsPerDayHandled;  
+        //'font-style:italic; font-size:10px;' :
+       
+       
+        //data.setProperties(0, 0, {'style':  'font-style:bold; font-size:15px;background-color: #696969;'});  
+        //data.setProperties(0, 1, {'style': 'background-color: #696969;'});  
+        //data.setProperties(0, 2, {'style': 'background-color: #696969;'});
+        //data.setProperties(0, 3, {'style': 'background-color: #696969;'});   
+            
+          //First Row
+          var ContactsPerDayHandled = data.getValue(0, 2);
+          var day_ContactsPerDayHandled = data.getValue(0, 1);
+          var year_ContactsPerDayHandled  = data.getValue(0, 3);
+          var Points_ContactsPerDayHandled = 10;
+          
+          var MonthStyle = getStyleForCPD(ContactsPerDayHandled);
+          data.setProperties(0, 2, MonthStyle);
+          
+          var DayStyle = getStyleForCPD(day_ContactsPerDayHandled);
+          data.setProperties(0, 1, DayStyle);
+          
+          var YearStyle = getStyleForCPD(year_ContactsPerDayHandled);
+          data.setProperties(0, 3, YearStyle);
+          
+
+          
+          //Second Row
+          var AverageHandleTimes = data.getValue(1, 2);
+          var day_AverageHandleTimes = data.getValue(1, 1);
+          var year_AverageHandleTimes = data.getValue(1, 3);
+          var Points_AverageHandleTimes = 10;
+          
+          var style = getStyleForAHT(AverageHandleTimes);
+          data.setProperties(1, 2, style);
+          
+          var DayStyle = getStyleForAHT(day_AverageHandleTimes)
+          data.setProperties(1, 1, DayStyle);
+          
+          var YearStyle = getStyleForAHT(year_AverageHandleTimes)
+          data.setProperties(1, 3, YearStyle);
+ 
+     
+     
+          //Third Row
+          var HoldTime = data.getValue(2, 2);
+          var day_HoldTime = data.getValue(2, 1);
+          var year_HoldTime = data.getValue(2, 3);
+          var Points_HoldTime = 20;
+          
+          var style = getStyleForHT(HoldTime);
+          data.setProperties(2, 2, style);
+          
+          var DayStyle = getStyleForHT(day_HoldTime);
+          data.setProperties(2, 1, DayStyle);
+          
+          var YearStyle = getStyleForHT(year_HoldTime);
+          data.setProperties(2, 3, YearStyle);
+
+          
+          //Fourth Row
+          var CallsOver7Minutes = data.getValue(3, 2);
+          var day_CallsOver7Minutes = data.getValue(3, 1);
+          var year_CallsOver7Minutes = data.getValue(3, 3);
+          var Points_CallsOver7Minutes = 10;
+          
+          var style = getStyleForCO7M(CallsOver7Minutes);
+          data.setProperties(3, 2, style);
+          
+          var DayStyle = getStyleForCO7M(day_CallsOver7Minutes);
+          data.setProperties(3, 1, DayStyle);
+          
+          var YearStyle = getStyleForCO7M(year_CallsOver7Minutes);
+          data.setProperties(3, 3, YearStyle);
+          
+          
+          //Fifth Row = Quality Section
+          // data.setProperties(5, 0, {'style':  'font-style:bold; font-size:15px;background-color: #696969;'});  
+           //data.setProperties(5, 1,  {'style': 'background-color: #696969;'});
+           //data.setProperties(5, 2,  {'style': 'background-color: #696969;'});
+           //data.setProperties(5, 3,  {'style': 'background-color: #696969;'});  
+    
+        
+         //Sixth Row
+          var BPA = data.getValue(4, 2);
+          var day_BPA = data.getValue(4, 1);
+          var year_BPA = data.getValue(4, 3);
+          var Points_BPA = 10;
+          
+          var style = getStyleForBPA(BPA );
+          data.setProperties(4, 2, style);
+          
+          var DayStyle = getStyleForBPA(day_BPA );
+          data.setProperties(4, 1, DayStyle);
+          
+          var YearStyle = getStyleForBPA(year_BPA );
+          data.setProperties(4, 3, YearStyle);
+          
+          
+  
+           //7th Row
+          var ErrorRate = data.getValue(5, 2);
+          var day_ErrorRate = data.getValue(5, 1);
+          var year_ErrorRate = data.getValue(5, 3);
+          var Points_ErrorRate = 10;
+          
+          var style = getStyleForERR(ErrorRate)
+          data.setProperties(5, 2, style);
+          
+          var DayStyle = getStyleForERR(day_ErrorRate)
+          data.setProperties(5, 1, DayStyle);
+          
+          var YearStyle = getStyleForERR(ErrorRate)
+          data.setProperties(5, 3, YearStyle);
+          
+          
+        //data.setProperties(8, 0, {'style':  'font-style:bold; font-size:15px;background-color: #696969;'});  
+
+        //data.setProperties(8, 1, {'style': 'background-color: #696969;'}); 
+        //data.setProperties(8, 2, {'style': 'background-color: #696969;'});
+        //data.setProperties(8, 3, {'style': 'background-color: #696969;'}); 
+
+           
+          
+          //9th Row
+          var ScheduleAdherance = data.getValue(6, 2);
+          var day_ScheduleAdherance = data.getValue(6, 1);
+          var year_ScheduleAdherance = data.getValue(6, 3);
+          var Points_ScheduleAdherance = 10;
+          
+          var style = getStyleForSA(ScheduleAdherance);
+          data.setProperties(6, 2, style);
+          
+          var DayStyle = getStyleForSA(day_ScheduleAdherance);
+          data.setProperties(6, 1, DayStyle);
+          
+          var YearStyle = getStyleForSA(year_ScheduleAdherance);
+          data.setProperties(6, 3, YearStyle);
+          
+        
+        //10th row = JK Category
+        //data.setProperties(10, 0, {'style':  'font-style:bold; font-size:15px;background-color: #696969;'});  
+        //data.setProperties(10, 1, {'style': 'background-color: #696969;'}); 
+        //data.setProperties(10, 2, {'style': 'background-color: #696969;'});
+        //data.setProperties(10, 3, {'style': 'background-color: #696969;'});
+         
+
+          //11th th Row
+          var Follow_up_time_percent = data.getValue(7, 2);
+          var day_Follow_up_time_percent = data.getValue(7, 1);
+          var year_Follow_up_time_percent = data.getValue(7, 3);
+          var Points_Follow_up_time_percent = 10;
+          
+          var style = getStyleForFUT(Follow_up_time_percent)
+          data.setProperties(7, 2, style);
+          
+          var DayStyle = getStyleForFUT(day_Follow_up_time_percent)
+          data.setProperties(7, 1, DayStyle);
+          
+          var YearStyle = getStyleForFUT(year_Follow_up_time_percent)
+          data.setProperties(7, 3, YearStyle);
+          
+          
+        
+            var Total_Points = Points_Follow_up_time_percent +  Points_ScheduleAdherance
+            + Points_ErrorRate + Points_BPA + Points_CallsOver7Minutes + Points_HoldTime + Points_AverageHandleTimes
+            + Points_ContactsPerDayHandled;
+
+
+
+         // data.setProperties(12, 0, {'style':  'font-style:bold; font-size:15px;background-color: #696969;'});  
+         
+          /*12th Row
+          var Total = data.getValue(12, 2);
+          var Total = Total_Points;
+          
+          var style = getStyleForTotal(Total);
+          data.setProperties(8, 2, style);
+          
+          var DayStyle = getStyleForTotal(Total);
+          data.setProperties(8, 1, style);
+          
+          var YearStyle = getStyleForTotal(Total);
+          data.setProperties(8, 3, style);
+          */
+          
+         
+    
+          //formatter.format(data, 1);
+          
+         
+          data.setColumnProperties(0, {style: 'width:100px'});
+            
+            
+            table.draw(data,  {allowHtml: true, showRowNumber: true, width: 450, height:650});
+
+           
+          }
+    
+    
+    function followTimeChart() {
+    
+      YTD_BPA = 0;
+      var goalConst = 0.4;
+      var superior = 0.5;
+      var good = 0.7;
+      var needs_imp = 0.9;
+      var unsat = 1;
+       
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartBPA};
+      var valueSize = {!(chartBPA.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_BPA += scores[i]; 
+      } 
+      
+      YTD_BPA = YTD_BPA / valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], Math.floor(Math.random() * (1 - 0.04 + 0.01)) + 0.04, goalConst, Math.floor(Math.random() * (1 - 0.3 + 0.1)) + 0.3, superior,good,needs_imp]); 
+      }
+      
+      
+
+  var options = {
+        title: 'Follow-Up Time %',
+              titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: 'Score'
+        },
+ 
+        width: width,
+        height: height,
+       // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('FollowTimeChart'));
+
+      chart.draw(data, options);
+    }
+    
+    
+    
+    function drawBPAChart() {
+    
+      YTD_BPA = 0;
+      var goalConst = 90;
+      var superior = 85;
+      var good = 75;
+      var needs_imp = 70;
+      var unsat = 69;
+       
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartBPA};
+      var valueSize = {!(chartBPA.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_BPA += scores[i]; 
+      } 
+      
+      YTD_BPA = YTD_BPA / valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst, Math.floor(Math.random() * (100 - 75 + 1)) + 75, superior,good,needs_imp]); 
+      }
+      
+      
+
+  var options = {
+        title: 'Call Monitoring Score',
+              titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: 'Call Mon Score'
+        },
+ 
+        width: width,
+        height: height,
+       // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('BPAChart'));
+
+      chart.draw(data, options);
+    }
+    
+    
+    
+     function drawCPDChart() {
+
+      YTD_CPD = 0; 
+      var goalConst = 100;
+      var superior = 91;
+      var good = 80;
+      var needs_imp = 70;
+      var unsat = 69;
+
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartCPD};
+      var valueSize = {!(chartCPD.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_CPD += scores[i];
+      } 
+      
+      YTD_CPD = YTD_CPD / valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst,Math.floor(Math.random() * (100 - 75 + 1)) + 75, superior,good,needs_imp]); 
+      }
+      
+
+      var options = {
+        title: 'Contacts Per Day',
+              titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: '# of Contacts'
+        },
+ 
+        width: width,
+        height: height,
+       // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('CPDChart'));
+
+      chart.draw(data, options);
+    }
+    
+     function drawAHTChart() {
+
+      YTD_AHT = 0; 
+      var goalConst = 235;
+      var superior = 244;
+      var good = 260;
+      var needs_imp = 275;
+      var unsat = 271;
+
+
+
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartAHT};
+      var valueSize = {!(chartAHT.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_AHT += scores[i];  
+      } 
+      
+      YTD_AHT = YTD_AHT / valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst, Math.floor(Math.random() * (260 - 235 + 1)) + 235, superior,good,needs_imp]); 
+      }
+      
+      
+
+     var options = {
+        title: 'Average Handle Time',
+              titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: 'Time in Seconds'
+        },
+ 
+        width: width,
+        height: height,
+        legend: 'none',       // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('AHTChart'));
+
+      chart.draw(data, options);
+    }
+    
+     function drawHTChart() {
+
+      YTD_HT = 0; 
+      var goalConst = 4;
+      var superior = 5;
+      var good = 7;
+      var needs_imp = 9;
+      var unsat = 11;
+      
+      
+      
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartHT};
+      var valueSize = {!(chartHT.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_HT += scores[i];  
+      } 
+      
+      YTD_HT= YTD_HT/ valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst, Math.floor(Math.random() * (7 - 3 + 1)) + 3, superior,good,needs_imp]); 
+      }
+      
+
+     var options = {
+        title: 'Hold Time',
+              titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: '% of Time'
+        },
+ 
+        width: width,
+        height: height,
+        // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('HTChart'));
+
+      chart.draw(data, options);
+    }
+    
+     function drawCO7MChart() {
+    
+      YTD_CO7M = 0; 
+      var goalConst = 0.10;
+      var superior = 0.11;
+      var good = 0.14;
+      var needs_imp = 0.16;
+      var unsat = 0.19;
+        
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartCO7M};
+      var valueSize = {!(chartCO7M.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_CO7M += scores[i]; 
+      } 
+      
+      YTD_CO7M = YTD_CO7M / valueSize;
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst, Math.floor(Math.random() * (0.16 - 0.06 + .1)) + 0.06, superior,good,needs_imp]); 
+      }
+      
+      
+
+      var options = {
+        title:'Follow-up Time %',
+        titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        
+        vAxis: {
+          title: '% of Calls'
+        },
+ 
+        width: width,
+        height: height,
+        // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('CO7MChart'));
+
+      chart.draw(data, options);
+    }
+    
+     function drawERRChart() {
+
+      YTD_ERR = 0; 
+      var goalConst = 4; 
+      var superior = 5;
+      var good = 7.6;
+      var needs_imp = 10.1;
+      var unsat = 12.6;
+        
+        
+      var dates = []; 
+      var scores = []; 
+      var dateList = {!chartDateMonth};
+      var dateSize = {!(chartDateMonth.size)};
+      var values = {!chartERR};
+      var valueSize = {!(chartERR.size)};
+      var yearList = {!chartDateYear};
+      var yearListSize = {!(chartDateYear.size)}; 
+      
+      var year_and_month = []; 
+      
+      for(var i = 0; i < valueSize; i++)
+      {
+          scores[i] = values[i]; 
+          YTD_ERR += scores[i];  
+      } 
+      
+      YTD_ERR = YTD_ERR / valueSize; 
+      
+     for(var i = 0; i < dateSize; i++)
+      {
+          dates[i] = dateList[i]; 
+          year_and_month[i] = (getMonth(dateList[i])+yearList[i].toString());
+      }
+      
+      
+      
+        
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Month');
+      data.addColumn('number', 'Score');
+      data.addColumn('number', 'Goal');
+      data.addColumn('number', 'Team_Avg');
+      data.addColumn('number', 'superior');
+      data.addColumn('number', 'good');
+      data.addColumn('number', 'needs_imp');
+  
+
+      for(var i = 0; i < scores.length; i++)
+      {
+          data.addRow([year_and_month[i], scores[i], goalConst, Math.floor(Math.random() * (7.6 - 4 + 1)) + 4, superior,good,needs_imp]); 
+      }
+      
+  
+ 
+      var options = {
+        title: 'Error Rate',
+       titleTextStyle: {color: '#2E64FE', fontName: 'Play',
+      fontSize: 16,
+      bold: true,
+      opacity: 0.8},
+        vAxis: {
+          title: '% Error'
+        },
+ 
+        width: width,
+        height: height,
+        // legend: 'none',
+        legend: { position: 'top', alignment: 'start' },
+        colors: ['blue', 'green','black','blue','purple','yellow'],
+        lineWidth: 2
+      };
+
+
+
+    
+
+ 
+
+      //var chart = new google.charts.Bar(document.getElementById('ERRChart'));
+      var chart = new google.visualization.LineChart(document.getElementById('ERRChart'));
+
+ 
+      chart.draw(data, options);
+    }
+    
+
+    function getMonth(intMonth)
+    {
+        var month;
+    
+        switch(intMonth) {
+            case 1:
+                month = 'Jan';
+                break;
+            case 2:
+                month = 'Feb';
+                break;
+            case 3:
+                month = 'Mar';
+                break;
+            case 4:
+                month = 'Apr';
+                break;
+            case 5:
+                month = 'May';
+                break;
+            case 6:
+                month = 'Jun';
+                break;
+            case 7:
+                month = 'Jul';
+                break;
+            case 8:
+                month = 'Aug';
+                break;
+            case 9:
+                month = 'Sep';
+                break;
+            case 10:
+                month = 'Oct';
+                break;
+            case 11:
+                month = 'Nov';
+                break;
+            case 12:
+                month = 'Dec';
+                break;
+            default:
+                month = 'null'; 
+        } 
+        
+        return month;
+    }
+
+    
+     function getStyleForCPD(ContactsPerDayHandled )
+    {
+        if(ContactsPerDayHandled  > 100)  
+          {
+              return {'style': 'background-color: #33CC00;'};
+          }
+          else if(ContactsPerDayHandled > 90)
+          {
+              return {'style': 'background-color: #0066FF;'};
+          }
+          else if(ContactsPerDayHandled > 80)
+          {
+              return {'style': 'background-color: #673ab7;'};
+          }
+          else if(ContactsPerDayHandled  > 70)
+          {
+              return {'style': 'background-color: #ffeb3b;'};    
+          }
+          else
+          {
+              return {'style': 'background-color: #CC3300;'};                      
+          }
+    }
+    
+    function getStyleForAHT(AverageHandleTimes )
+    {
+        if(AverageHandleTimes < 235)  
+          {
+              return {'style': 'background-color: #33CC00;'};
+          }
+          else if(AverageHandleTimes < 244)
+          {
+              return {'style': 'background-color: #0066FF;'};
+          }
+          else if(AverageHandleTimes < 260)
+          {
+              return {'style': 'background-color: #673ab7;'};
+          }
+          else if(AverageHandleTimes < 275)
+          {
+              return {'style': 'background-color: #ffeb3b;'};       
+          }
+          else
+          {
+              return {'style': 'background-color: #CC3300;'};                   
+          }
+    }
+    
+    function getStyleForHT(HoldTime)
+    {
+        if(HoldTime  < 5)  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+          else if(HoldTime < 6)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+          else if(HoldTime < 8)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+          else if(HoldTime  < 10)
+          {
+            return {'style': 'background-color: #ffeb3b;'};   
+          }
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};          
+          }
+    }
+    
+    function getStyleForCO7M(CallsOver7Minutes)
+    {
+        if(CallsOver7Minutes  < 11)  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+          else if(CallsOver7Minutes < 13.99)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+          else if(CallsOver7Minutes < 16)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+          else if(CallsOver7Minutes  < 18)
+          {
+            return {'style': 'background-color: #ffeb3b;'};  
+          }
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};                           
+          }
+    }
+    
+    function getStyleForBPA(BPA)
+    {
+        //Outstanding
+        if(BPA  >= 90)  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+        //Superior
+          else if(BPA >= 85)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+        //Good
+          else if(BPA >= 75)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+         //Needs Improvement
+          else if(BPA  >= 70 )
+          {
+            return {'style': 'background-color: #ffeb3b;'};
+          }
+         //Unsatisfactoryy
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};         
+          }
+    }
+    
+    function getStyleForERR(ErrorRate)
+    {
+        if(ErrorRate  < .5)  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+          else if(ErrorRate < .75)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+          else if(ErrorRate < 1)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+          else if(ErrorRate  < 1.25 )
+          {
+            return {'style': 'background-color: #ffeb3b;'};
+          }
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};                       
+          }
+    }
+    
+    function getStyleForSA(ScheduleAdherance)
+    {
+        if(ScheduleAdherance  > 96)  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+          else if(ScheduleAdherance > 93)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+          else if(ScheduleAdherance >= 90)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+          else if(ScheduleAdherance  >= 86 )
+          {
+            return {'style': 'background-color: #ffeb3b;'};     
+          }
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};              
+          }
+    }
+    
+    function getStyleForFUT(Follow_up_time_percent)
+    {
+        if(Follow_up_time_percent < 5 )  
+          {
+            return {'style': 'background-color: #33CC00;'};
+          }
+          else if(Follow_up_time_percent <= 6)
+          {
+            return {'style': 'background-color: #0066FF;'};
+          }
+          else if(Follow_up_time_percent <=  8)
+          {
+            return {'style': 'background-color: #673ab7;'};
+          }
+          else if(Follow_up_time_percent  <= 10 )
+          {
+            return {'style': 'background-color: #ffeb3b;'};  
+          }
+          else
+          {
+           return {'style': 'background-color: #CC3300;'};                
+          }
+    }
+    
+    function getStyleForTotal(Total)
+    {
+        if(Total >= 85 )  
+          {
+            return {'style': 'background-color: #33CC00;'}; 
+          }
+          else if(Total >= 70 )
+          {
+            return {'style': 'background-color: #0066FF;'};  
+          }
+          else if(Total >= 50)
+          {
+            return {'style': 'background-color: #673ab7;'};  
+          }
+          else if(Total  >= 25 )
+          {
+            return {'style': 'background-color: #ffeb3b;'}; 
+          }
+          else
+          {
+            return {'style': 'background-color: #CC3300;'};                
+          }
+    }
+    
+
+        </script>
+   
+
+
+    
+
+    
+</apex:page>

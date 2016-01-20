@@ -1,0 +1,578 @@
+<apex:page controller="Billing_Proto_Controller" sidebar="false">
+	
+	<apex:stylesheet value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/css/bootstrap-force.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.chosen, 'chosen.css')}"/>
+    <apex:stylesheet value="//cdn.datatables.net/plug-ins/725b2a2115b/integration/bootstrap/3/dataTables.bootstrap.css"/>
+	<apex:stylesheet value="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css"/>
+	
+	<!-- Action functions must be inside an apex:form -->
+	<apex:form id="Action_Functions">
+		<apex:actionFunction name="checkIn" action="{!checkUserIn}" rerender="Action_Functions"/>
+		<apex:actionFunction name="checkOut" action="{!checkUserOut}" rerender="Action_Functions"/>
+	</apex:form>
+	
+	<!-- Loading bar, progress bar for user status changing -->
+	<div id="dialog" title="Refreshing ProActive">
+		<div class="progress-label">Refreshing...</div>
+		<div id="progressbar"></div>
+	</div>
+	
+	<!-- Surround all Bootstrapped items with "bootstap-force" class div to prevent Bootstrap from conflicting with VisualForce -->
+	<div class="bootstrap-force">
+		<div class="container" style="width:98%;">
+		
+			<!-- Row used to contain the visual and numerical case information charts along with the Available & Unavailable buttons -->
+			<div id="chart_row" class="row">
+				<div id="case_Chart" style="left:-20px;" class="offset3 text-center center span8"></div>
+				<div id="case_Chart_Totals" style="top:10px; left:-40px;" class="span1"></div>
+			</div> <!-- end row 1 div -->
+			
+			<div id="utilities_row" class="row-fluid" style="padding-bottom:5px;">
+				<div id="select_Div" class="span2">
+					<select id="filter_Selector" style="width:160px" class="text-center chosen-select">
+						<option value="mycases_sel">My Cases</option>
+                        <option value="unassigned_sel">Unassigned Cases</option>
+                        <option value="allcases_sel">All Cases</option>
+					</select>
+				</div>	
+				<div id="button_Group" class="btn-group span9">
+					<button id="new_Case_Button" type="button" style="width:120px;" class="btn btn-med btn-info">New Case</button>
+					<button id="start_Unassigned_Button" type="button" style="width:220px;" class="btn btn-med btn-info">Start an Unassigned Case</button>
+					<button id="available_Button" type="button" style="width:180px;" class="btn btn-med btn-success">Available</button>
+					<button id="unavailable_Button" type="button" style="width:180px;" class="btn btn-med btn-danger">Unavailable</button>
+				</div>
+			</div>
+			
+			<!-- Div for the case table -->
+			<div id="case_Table" style="font-size:14px;">
+				<table title="Case List" class="table table-bordered table-hover table-striped table-condensed" id="case_datatable">
+	                <thead>
+	                	<tr>
+	                       <th>Case Number</th>
+	                       <th>From</th>
+	                       <th>Date From</th>
+	                       <th>Work Item</th>
+	                       <th>Worked By Activity</th>
+	                       <th>Priority</th>
+	                       <th>Link</th>
+	                       <th>Worked</th>
+	                       <th>Owner</th>
+	                    </tr>
+	                </thead>
+	                <tfoot>
+	                	<tr>
+	                       <th>Case Number</th>
+	                       <th>From</th>
+	                       <th>Date From</th>
+	                       <th>Work Item</th>
+	                       <th>Worked By Activity</th>
+	                       <th>Priority</th>
+	                       <th>Link</th>
+	                       <th>Worked</th>
+	                       <th>Owner</th>
+	                    </tr>
+	                </tfoot>
+	                <tbody style="cursor:pointer;"></tbody>
+           		</table>
+        	</div> <!-- end case table div -->
+        	
+		</div> <!-- end container div -->
+	</div> <!-- end bootstrap-force div -->
+	
+	<!-- include jQuery & jQuery UI libraries -->
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-1.11.1.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.JQueryzip, 'jquery-ui-1.10.4/js/jquery-ui-1.10.4.js')}"/> 
+	
+	<!-- include Bootstrap libraries -->
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-button.js')}"/>
+	
+    <!-- include Chosen jQuery plugin -->
+    <apex:includescript value="{!URLFOR($Resource.chosen, 'chosen.jquery.js')}"/>
+    
+    <!-- include DataTables jQuery plugin -->
+    <apex:includescript value="{!URLFOR($Resource.datatables, 'DataTables-1.10.0/media/js/jquery.dataTables.js')}"/>
+    
+    <!-- DataTables for Bootstrap -->
+   	<apex:includescript value="//cdn.datatables.net/plug-ins/725b2a2115b/integration/bootstrap/2/dataTables.bootstrap.js"/>
+    
+	<!-- include Google javascript API -->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script> 
+    
+    <!-- include Salesforce Console integration API -->
+    <apex:includescript value="/support/console/31.0/integration.js"/>
+    
+    
+    <!-- Optional: Include additional Bootstrap libraries as needed
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-tab.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-modal.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-alert.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-carousel.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-collapse.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-dropdown.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-popover.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-scrollspy.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-tooltip.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-transition.js')}"/>
+	<apex:includescript value="{!URLFOR($Resource.bootstrapforce, 'bootstrap-force-master/js/bootstrap-typeahead.js')}"/>
+	 -->
+	
+	<style>
+	
+		.tableText {
+			text-align:center;
+			font-size: 14px;
+			height:25px;
+		}
+		
+		.tableTextHover {
+			background-color: lightgray;
+		}
+		
+		.tableHeader {
+			text-align:center;
+			font-size: 14px;
+			font-weight:bold;
+		} 
+		
+		button-newevent-table {
+			height:25px;
+			width:100px;
+		}
+		
+		td.details-control {
+	        background: url('{!URLFOR($Resource.detailsopen, '')}') no-repeat center center;
+	        cursor: pointer;
+	    }
+	    
+	    tr.shown td.details-control {
+	        background: url('{!URLFOR($Resource.detailsclose, '')}') no-repeat center center;
+	    }
+	    
+	    #progressbar {
+			margin-top: 20px;
+		}
+		.progress-label {
+			font-weight: bold;
+			text-shadow: 1px 1px 0 #fff;
+		}
+		.ui-dialog-titlebar-close {
+			display: none;
+		}
+	    
+	    .center {
+		    margin-left: auto;
+		    margin-right: auto;
+		    width: 95%;
+		}
+	</style>
+	
+	<script>
+	 /* Replace "$." with "$j." to call JQuery API
+	  * so it doesn't conflict with Salesforce
+	  */
+	 $j = jQuery.noConflict();
+	 
+	 /*
+	  * Runs once the page is loaded
+	  */
+	 $j(document).ready(function() {
+	 
+	 	var table = $j('#case_datatable'); 
+	 	
+	 	table.dataTable({
+	            "columns": [ 
+	            { "data": "Billing Case Number" }, // column 1
+	            { "data": "From" }, // column 2
+	            { "data": "Date From" },
+	            { "data": "Work Item" },
+	            { "data": "Worked By Activity" },
+	            { "data": "Priority" }, // column 6
+	            { "data": "Link" },
+	            { "data": "Worked" }, // column 8
+	            { "data": "Owner" }
+	            ],
+	            "lengthMenu": [[ 10, 25, 50, 100, 250, 500, -1 ], [ 10, 25, 50, 100, 250, 500, "All" ]], // Sets the available "Show X entries" options
+	            "scrollY":        400, // Set the height of the table to scroll vertically when appropriate
+	            "scrollCollapse":  false, // Don't collapse the table to the contents
+	            "Processing"   : false, // Do the processing client-side
+	            "jQueryUI":     false, // Use the JQuery themeroller to style the table
+	            "pagingType":   "simple_numbers",  // Set the paging options to show "Previous" "Next" and page numbers
+	            "ServerSide"   : false, // Don't do serverside processing
+	            "order": [[2, 'asc'],[5, 'asc']], // Initialize the table with columns 2 (date) and 5 (priority) sorted
+	            "ajax"   : '{!$Page.Billing_Cases_JSON}' // Source of the JSON
+	        } );
+	        
+	 		// Initialize table to show 100 items
+	        table.DataTable().page.len(100).draw();
+	        
+	        // Filter table to only show the user's cases
+	        table.DataTable().column(13).search('{!userName}').draw();
+	        
+	        // Readjust columns to use maximum space, then redraw the chart
+	        function redrawTable() {
+	            table.DataTable().columns.adjust().draw(false);
+	        }
+	        
+	        // Allow resizing on the tables
+	 	    $j(window).resize( function () {
+	       		redrawTable();
+	        } );
+	       
+	  	    /** Refreshes the Case table every 120 seconds
+	         */
+	        setInterval( function () {
+	                table.DataTable().ajax.reload('', false);
+	        }, 120000 );
+	        
+	  	    table.on('draw.dt', function() {
+			    var dt_nextbtn = $j('#case_datatable_next');
+			 	var dt_prevbtn = $j('#case_datatable_previous');  
+
+				dt_nextbtn.addClass('btn');
+				dt_prevbtn.addClass('btn');	  
+				
+				// Select the list of numbers between the Previous and Next paging buttons
+				// they are children of the child span case_datatable_paginate object
+				var paginate_links = $j('#case_datatable_paginate > span > a');
+				
+				paginate_links.addClass('btn btn-small');
+				paginate_links.removeClass('disabled');
+				for (var i = 0; i < paginate_links.length; i++) {
+					if ($j(paginate_links[i]).hasClass('current')) {
+						$j(paginate_links[i]).addClass('disabled');
+					}
+				}
+				
+	  	    });
+	  	    
+	  	    $j('#filter_Selector').chosen({disable_search_threshold: 10,
+									   inherit_select_classes: true}).on('change', function() {
+	            
+            // Clear filters and apply a filter on column 13 (OwnerID) 
+            if (this.value == 'mycases_sel') {
+                table.DataTable().columns().search(''); // clear filters
+                table.DataTable().column(13).search('{!userName}').draw(); 
+            }
+            
+            // Clear filters and apply a filter on column 8 (Status)
+            else if (this.value == 'unassigned_sel') {
+                table.DataTable().columns().search(''); // clear filters
+                table.DataTable().column(8).search('Unassigned').draw();
+            }
+            
+            else if (this.value == 'allcases_sel') {
+                table.DataTable().columns().search('').draw(); // clear filters
+            }
+	    });
+	  	    
+  	    // Add event listener for opening and closing details
+        table.on('click', 'td.details-control', function () {
+            var tr = $j(this).closest('tr');
+            var row = table.DataTable().row( tr );
+            
+            if ( row.child.isShown() ) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                row.child( format(row.data()) ).show();
+                tr.addClass('shown');
+            }
+            // Attach jQuery UI classes to the new button
+            addButtonClasses(row.data());
+        } );
+	  	
+	  	// Enables hover/click functionality for the buttons
+        function addButtonClasses(d) {
+
+            button = $j('#button'+d.CaseNumber);
+            
+            if (d.Status == 'Unassigned' || d.OwnerId != '{!userName}') {
+				button.addClass("disabled");
+				button.removeClass("btn-primary");
+				button.addClass("btn-inverse");
+				button.prop("disabled", "disabled");
+			}
+            
+            button.on('click', function() {
+            	//console.log('/00U/e?who_id='+d.ContactId+'&what_id='+d.Id+'&?isdtp=vw');
+            	sforce.console.openPrimaryTab(null, '/00U/e?who_id='+d.ContactId+'&what_id='+d.Id+'&?isdtp=vw', true, 'New Event');
+            });
+        }
+        
+	  	/* Formatting function for row details
+         * Adds child rows to the case table
+         */
+        function format ( d ) {
+            // `d` is the original data object for the row
+            return '<table cellpadding="5" cellspacing="0" border="0" class="offset1">'+
+                '<tr>'+
+                    '<td>Phone:</td>'+
+                    '<td>'+d.Cont_Phone+'</td>'+
+                '</tr>'+
+                '<tr>'+
+                    '<td>Email:</td>'+
+                    '<td>'+d.Cont_Email+'</td>'+
+                '</tr>'+
+                '<tr>'+
+                    '<td>Description:</td>'+
+                    '<td>'+d.Description+'</td>'+
+                '</tr>'+
+                '<tr>'+
+                    '<td></td>'+
+                    '<td>'+
+                        '<button id="button'+d.CaseNumber+'" class="btn btn-primary btn-small button-newevent-table">New Event</button>'+
+                    '</td>'+
+                '</tr>'+
+            '</table>';
+        }
+	  	
+	  	// Double click redirects the user to the case detail page
+        table.on( 'dblclick', 'tr', function () {
+            sforce.console.openPrimaryTab(null, '/'+table.DataTable().row(this).data().Id+'?isdtp=vw', true,
+												'Case '+table.DataTable().row(this).data().CaseNumber);
+        } );
+	  	
+	  	
+	  	/* Table functionality is in place.
+	  	 * Set up the new case, start unassigned case,
+	  	 * and check-in/check-out buttons
+	  	 */
+	  	 
+		 var startUnassignedButton = $j('#start_Unassigned_Button');
+		 
+		 startUnassignedButton.on('click', function() {
+		 	// Will need an action function here to call an apex function
+		 	// to query the server for the next Unassigned, high priority
+		 	// case. 
+		 	getNextUnassigned();
+		 });	
+	  	 
+	  	 var availableButton = $j('#available_Button');	  	 
+	  	 var unavailableButton = $j('#unavailable_Button');
+	  	 	 
+	  	 function initializeStatusButtons(status) {
+	  	 	 
+		  	 if (status) {
+		  	 	availableButton.addClass('disabled');
+		  	 	availableButton.prop("disabled", "disabled");	
+		  	 	availableButton.text("You are available");
+		  	 	
+		  	 	startUnassignedButton.removeClass('disabled');
+		  	 	startUnassignedButton.prop("disabled", "");
+		  	 	
+		  	 	unavailableButton.removeClass('disabled');
+		  	 	unavailableButton.prop("disabled", "");
+		  	 	unavailableButton.text("Become unavailable");
+		  	 }
+		  	 
+		  	 else if (!status) {
+		  	 	unavailableButton.addClass('disabled');
+		  	 	unavailableButton.prop("disabled", "disabled");	
+		  	 	unavailableButton.text("You are unavailable");
+		  	 	
+		  	 	startUnassignedButton.addClass('disabled')
+		  	 	startUnassignedButton.prop("disabled", "disabled");
+		  	 	
+		  	 	availableButton.removeClass('disabled');
+		  	 	availableButton.prop("disabled", "");
+		  	 	availableButton.text("Become available");
+	  	 	 }
+	  	 }
+	  	 
+	  	 initializeStatusButtons({!userStatus});
+	  	 
+	  	 availableButton.on('click', function() {
+	  	 	availableButton.addClass('disabled');
+	  	 	availableButton.prop("disabled", "disabled");	
+	  	 	
+	  	 	startUnassignedButton.addClass('disabled')
+	  	 	startUnassignedButton.prop("disabled", "disabled");
+	  	 	
+	  	 	// Set user's status as AVAILABLE
+	  	 	// Run the case shuffler
+	  	 	checkIn();
+	  	 	dialog.dialog("open");
+	  	 });
+	  	 
+	  	 unavailableButton.on('click', function() {
+	  	 	unavailableButton.addClass('disabled');
+	  	 	unavailableButton.prop("disabled", "disabled");	
+	  	 	
+	  	 	// Set the user's status as UNAVAILABLE
+	  	 	// Run the case shuffler
+	  	 	checkOut();
+	  	 	dialog.dialog("open");	  	 		  	 
+	  	 });
+	  	 
+    	/* Progressbar info
+    	 * @variables:
+    	 * 		progressTimer: Used to keep track of the completed percentage of the progress bar
+    	 * 		progressBar: A jQuery UI progressBar element
+    	 * 		progressLabel: Text informing the user of the value of the progressTimer
+    	 * 		dialogButtons: Gives the user the option to close the dialog after completion
+    	 * 		dialog: The popup container that holds the progressBar, progressLabel and dialogButtons
+    	 */
+	  	var progressTimer, 
+	  		progressBar = $j('#progressbar'),
+	  		progressLabel = $j('.progress-label'),
+	  		dialogButtons = [], // no buttons needed initially
+	  		dialog = $j('#dialog').dialog({
+	  			autoOpen: false,
+	  			closeOnEscape: false,
+	  			resizable: false,
+	  			open: function() { // runs when the dialog is opened
+	  				progressTimer = setTimeout(progress, 2500); // 2 sec delay, then run function() progress
+	  			}
+	  		});
+	  	
+	  	progressBar.progressbar({
+	  		value: false,
+	  		change: function() {
+	  			progressLabel.text("Current Progress: " + progressBar.progressbar( 'value' ) + "%" );
+	  		},
+	  		complete: function() {
+	  			progressLabel.text("Done!");
+	  			dialog.dialog("option", "buttons", [{
+	  				text: "Close",
+	  				click: closeDownload
+	  			}]);
+	  			$j('.ui-dialog button').last().focus();
+	  		}
+	  	});
+	  	
+	  	function progress() {
+	  		var val = progressBar.progressbar("value") || 0;
+	  		
+	  		progressBar.progressbar("value", val+1);
+	  		
+	  		if (val <= 99) {
+	  			progresstimer = setTimeout(progress, 100);
+	  		}
+	  	}  
+    	
+    	function closeDownload() {
+    		clearTimeout(progressTimer);
+    		dialog
+    			.dialog("option", "buttons", dialogButtons)
+    			.dialog("close");
+    		progressBar.progressbar("value", false);
+    		progressLabel.text("Loading tables..");
+    		
+    		table.DataTable().ajax.reload(function() {}, true);
+    		
+    		Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.Billing_Proto_Controller.getUserStatus}', 
+    													function(result, event) { initializeStatusButtons(result); });
+    	}
+	  	
+	  	 var newCaseButton = $j('#new_Case_Button');
+	  	 
+	  	 newCaseButton.on('click', function() {
+	  	 	//sforce.console.openPrimaryTab(null, '/500/e?', true, 'New Case');
+	  	 	
+	  	 });
+		  	 
+		
+		/* Javascript remoting 
+		 * Testing
+		 */		
+		
+		function getNextUnassigned() {
+			Visualforce.remoting.Manager.invokeAction(	'{!$RemoteAction.Billing_Proto_Controller.findNextCaseUnassigned}',
+														function(result, event) { openUnassignedCaseTab(result) } );
+		}
+		
+		function openUnassignedCaseTab(result) {
+			//console.log(result);
+            
+            if (result != null)
+		 		sforce.console.openPrimaryTab(null, '/'+result.Id+'?isdtp=vw', true, 'Case '+result.CaseNumber);
+		 	
+		 	else alert('No cases found!');
+		};
+		
+		/* End Javascript remoting
+		 */
+
+	  }); // end jQuery
+	 
+	 
+	  google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart4);
+      
+      google.load('visualization', '1', {packages:['table']});
+      google.setOnLoadCallback(drawTable);
+      
+      function drawChart4() {
+        var data = google.visualization.arrayToDataTable({!JSONString_CaseChart});
+        
+        var view = new google.visualization.DataView(data);
+        view.setColumns([0, 1, 2, {
+            type: 'long',
+            calc: function (dt, row) {
+                // set offset to determine how far you want to move the labels
+                var offset = 300;
+                return dt.getValue(row, 1) + dt.getValue(row, 2) + offset;
+            }
+        }], 5);
+        
+        var options = {
+	        height: 150,
+	        legend: { position: "top" },
+	        colors: ['#74BF79', /*'#FFFF66'*/'#FAEF87', '#FF9999'],
+			bar: { groupWidth: '97%' },
+			annotations: {
+				textStyle: {
+					fontSize: 14,
+					bold: true,
+					italic: true,
+					color: 'black',
+				}
+			},
+	        isStacked: true,
+	        backgroundColor: {fill: 'white'},
+	        hAxis: {title: '',
+	        		viewWindow: {max: 100},
+	        		ticks: [],
+	        		baselineColor: 'white',
+	        		baseline: '-1'
+	        		}
+     	};
+   
+        var chart = new google.visualization.BarChart(document.getElementById('case_Chart'));
+        chart.draw(data, options);
+      }
+      
+      function drawTable() {
+      	
+      	var cssClassNames = {
+      	
+		    'headerRow': 'tableHeader',
+		    'tableRow': 'tableText',
+		    'hoverTableRow': 'tableTextHover',
+		    'selectedTableRow': 'tableTextHover',
+		    'oddTableRow': 'tableText',
+		    'headerCell': 'tableHeader',
+		    'tableCell': 'tableText',
+		    'rowNumberCell': 'tableText'
+		};
+      
+        var data = new google.visualization.DataTable();
+        var sum = {!promoC}+{!unaC}+{!in_PC};
+        
+        data.addColumn('string', 'Totals');
+        data.addRows(4);
+        data.setCell(0, 0, ({!in_PC}).toString());
+        data.setCell(1, 0, ({!unaC}).toString());
+        data.setCell(2, 0, ({!promoC}).toString());
+        data.setCell(3, 0, sum.toString());
+        
+        var table = new google.visualization.Table(document.getElementById('case_Chart_Totals'));
+        table.draw(data, {showRowNumber: false, 'cssClassNames': cssClassNames,
+																sort: 'disable'});
+      }
+	  </script>
+
+</apex:page>

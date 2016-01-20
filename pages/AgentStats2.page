@@ -1,0 +1,361 @@
+<apex:page >
+
+<script>
+
+#chartdiv {background: #3f3f4f;color:#ffffff;   
+    width       : 100%;
+    height      : 500px;
+    font-size   : 11px;
+} 
+</script>  
+
+
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/dark.js"></script>
+<div class="chart-block">
+   <div id="chartdiv1" style="width:100%; height:120px;"></div>
+   <div id="chartdiv2" style="width:100%; height:120px;"></div>
+   <div id="chartdiv3" style="width:100%; height:120px;"></div>
+   <div id="chartdiv4" style="width:100%; height:120px;"></div>
+</div>      
+<script>
+var chart = AmCharts.makeChart("chartdiv1", {
+    "type": "serial",
+
+    "autoMargins": true,
+    "marginTop": 30,
+    "marginLeft": 80,
+    "marginBottom": 30,
+    "marginRight": 50,
+    "color":"#000000",
+    "bold":true,
+    "dataProvider": [{
+        "category": "Contacts Per Day Handled",
+        "excelent": 20,
+        "good": 20,
+        "average": 20,
+        "poor": 20,
+        "bad": 20,
+        "limit": 80,
+        "full": 100,
+        "bullet": 0
+    }],
+    "valueAxes": [{
+        "maximum": 100,
+        "stackType": "regular",
+        "gridAlpha": 0
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "columnWidth": 0.7,
+        "lineColor": "#000000",
+        "lineThickness": 5,
+        "noStepRisers": true,
+        "stackable": false,
+        "type": "step",
+        "valueField": "limit"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#CC3300",
+        "showBalloon": true,
+        "type": "column",
+        "valueField": "excelent"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#ffeb3b",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "good"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#673ab7",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "average"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#0066FF",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "poor"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#33CC00",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "bad"
+    }, {
+        "clustered": false,
+        "columnWidth": 0.3,
+        "fillAlphas": 1,
+        "lineColor": "#000000",
+        "stackable": false,
+        "type": "column",
+        "valueField": "bullet"
+    }],
+    "rotate": true,
+    "columnWidth": 1,
+    "categoryField": "category",
+    "categoryAxis": {
+        "gridAlpha": 0,
+        "position": "left"
+    }
+});
+
+var chart = AmCharts.makeChart("chartdiv2", {
+    "type": "serial",
+
+    "autoMargins": true,
+    "marginTop": 30,
+    "marginLeft": 80,
+    "marginBottom": 30,
+    "marginRight": 50,
+    "color":"#000000",
+    "bold":true,
+    "dataProvider": [{
+        "category": "Metric2",
+        "excelent": 20,
+        "good": 20,
+        "average": 20,
+        "poor": 20,
+        "bad": 20,
+        "limit": 31,
+        "full": 100,
+        "bullet": 0
+    }],
+    "valueAxes": [{
+        "maximum": 100,
+        "stackType": "regular",
+        "gridAlpha": 0
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "columnWidth": 0.7,
+        "lineColor": "#000000",
+        "lineThickness": 5,
+        "noStepRisers": true,
+        "stackable": false,
+        "type": "step",
+        "valueField": "limit"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#CC3300",
+        "showBalloon": true,
+        "type": "column",
+        "valueField": "excelent"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#ffeb3b",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "good"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#673ab7",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "average"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#0066FF",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "poor"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#33CC00",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "bad"
+    }, {
+        "clustered": false,
+        "columnWidth": 0.3,
+        "fillAlphas": 1,
+        "lineColor": "#000000",
+        "stackable": false,
+        "type": "column",
+        "valueField": "bullet"
+    }],
+    "rotate": true,
+    "columnWidth": 1,
+    "categoryField": "category",
+    "categoryAxis": {
+        "gridAlpha": 0,
+        "position": "left"
+    }
+});
+
+
+var chart = AmCharts.makeChart("chartdiv3", {
+    "type": "serial",
+
+    "autoMargins": true,
+    "marginTop": 30,
+    "marginLeft": 80,
+    "marginBottom": 30,
+    "marginRight": 50,
+    "color":"#000000",
+    "bold":true,
+    "dataProvider": [{
+        "category": "Metric3",
+        "excelent": 20,
+        "good": 20,
+        "average": 20,
+        "poor": 20,
+        "bad": 20,
+        "limit": 85,
+        "full": 100,
+        "bullet": 0
+    }],
+    "valueAxes": [{
+        "maximum": 100,
+        "stackType": "regular",
+        "gridAlpha": 0
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "columnWidth": 0.7,
+        "lineColor": "#000000",
+        "lineThickness": 5,
+        "noStepRisers": true,
+        "stackable": false,
+        "type": "step",
+        "valueField": "limit"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#CC3300",
+        "showBalloon": true,
+        "type": "column",
+        "valueField": "excelent"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#ffeb3b",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "good"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#673ab7",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "average"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#0066FF",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "poor"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#33CC00",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "bad"
+    }, {
+        "clustered": false,
+        "columnWidth": 0.3,
+        "fillAlphas": 1,
+        "lineColor": "#000000",
+        "stackable": false,
+        "type": "column",
+        "valueField": "bullet"
+    }],
+    "rotate": true,
+    "columnWidth": 1,
+    "categoryField": "category",
+    "categoryAxis": {
+        "gridAlpha": 0,
+        "position": "left"
+    }
+});
+
+
+var chart = AmCharts.makeChart("chartdiv4", {
+    "type": "serial",
+
+    "autoMargins": true,
+    "marginTop": 30,
+    "marginLeft": 80,
+    "marginBottom": 30,
+    "marginRight": 50,
+    "color":"#000000",
+    "bold":true,
+    "dataProvider": [{
+        "category": "Metric4",
+        "excelent": 20,
+        "good": 20,
+        "average": 20,
+        "poor": 20,
+        "bad": 20,
+        "limit": 77,
+        "full": 100,
+        "bullet": 0
+    }],
+    "valueAxes": [{
+        "maximum": 100,
+        "stackType": "regular",
+        "gridAlpha": 0
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "columnWidth": 0.7,
+        "lineColor": "#000000",
+        "lineThickness": 5,
+        "noStepRisers": true,
+        "stackable": false,
+        "type": "step",
+        "valueField": "limit"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#CC3300",
+        "showBalloon": true,
+        "type": "column",
+        "valueField": "excelent"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#ffeb3b",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "good"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#673ab7",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "average"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#0066FF",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "poor"
+    }, {
+        "fillAlphas": 0.8,
+        "lineColor": "#33CC00",
+        "showBalloon": false,
+        "type": "column",
+        "valueField": "bad"
+    }, {
+        "clustered": false,
+        "columnWidth": 0.3,
+        "fillAlphas": 1,
+        "lineColor": "#000000",
+        "stackable": false,
+        "type": "column",
+        "valueField": "bullet"
+    }],
+    "rotate": true,
+    "columnWidth": 1,
+    "categoryField": "category",
+    "categoryAxis": {
+        "gridAlpha": 0,
+        "position": "left"
+    }
+});
+
+
+
+</script>
+
+</apex:page>

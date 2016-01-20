@@ -1,0 +1,108 @@
+<apex:page sidebar="false" showHeader="false" Controller="GetReportData2"  >
+
+ <style>
+      table.reportResults {
+          width: 100%;
+      }
+  </style>
+ <apex:form >
+Select Report:
+<apex:selectList value="{!reportId}" multiselect="false" size="1">
+<apex:selectOptions value="{!availableReports}"/>
+</apex:selectList>
+<apex:actionPoller action="{!checkForReportResults}" id="poller" reRender="reportResults" interval="5" enabled="{!reportIsRunning}" />
+<apex:commandButton action="{!runReport}" reRender="poller,reportResults" value="Run Report"/>
+</apex:form>
+<apex:outputPanel id="reportResults" layout="block">
+      <apex:outputText value="Running..." rendered="{!reportIsRunning}"/>
+      <apex:outputPanel rendered="{!NOT(reportIsRunning)}">
+         <table class="reportResults">
+           <thead>
+               <apex:repeat value="{!reportResults.reportMetadata.detailColumns}" var="colName">
+                   <th><apex:outputText value="{!reportResults.reportExtendedMetadata.detailColumnInfo[colName].label}"/></th>
+               </apex:repeat>
+           </thead>
+ 
+           <tbody>
+               <apex:repeat value="{!reportResults.factMap['T!T'].rows}" var="row">
+                   <tr>
+                       <apex:repeat value="{!row.dataCells}" var="cell">
+                           <td><apex:outputText value="{!cell.label}"/></td>
+                       </apex:repeat>
+                   </tr>
+               </apex:repeat>
+           </tbody>
+         </table>
+      </apex:outputPanel>
+  </apex:outputPanel>
+
+
+
+ <table>
+ <tr><td>
+ <analytics:reportChart reportId="00Oe0000000GS8t"></analytics:reportChart>
+ </td>
+ <td>
+ <analytics:reportChart reportId="00Oe0000000Gb7L"></analytics:reportChart>
+ 
+ 
+ </td>
+ </tr>
+ </table>
+ 
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.3/d3.min.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.0.0-beta/nv.d3.min.js"></script>
+
+<table>
+<tr>
+ <script>
+
+ var h = 400,
+    w = 1000;
+
+ $(document).ready(function(){
+    // Make sure you are using a MATRIX Report
+    $.ajax('/services/data/v29.0/analytics/reports/00Oe0000000GOdx',
+        {
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', 'Bearer {!$Api.Session_ID}');
+            },
+            success: function(response) {
+                console.log(response);
+                var barwidth = w / response.length;
+                var chart = nv.models.barChart()
+
+                   
+                ;
+                
+                var chartData = [];
+                $.each(response.groupingsDown.groupings, function(di,de) {
+                    var values = [];
+                    chartData.push({"key":de.label, "values": values});
+                    $.each(response.groupingsAcross.groupings, function(ai,ae) {
+                        values.push({"x": ae.label, "y": response.factMap[de.key+"!"+ae.key].aggregates[0].value});
+                    });
+                    console.log(chartData);
+                });
+                d3.select('#chart')
+                .datum(chartData)
+                .transition().duration(100)
+                .call(chart);
+            }
+        }
+    );
+});
+</script>
+</tr>
+<tr>
+</tr>
+
+</table>
+
+
+<svg id="chart" height="1000px" width="1500px"></svg>
+
+ 
+
+</apex:page>

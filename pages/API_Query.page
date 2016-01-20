@@ -1,0 +1,20 @@
+<apex:page >
+  <apex:includeScript value="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js"/>
+  <script>
+    jQuery(document).ready(function($) {
+      // Pull 10 Accounts via the REST API
+// Get a reference to jQuery that doesn't conflict with Visualforce
+$j = jQuery.noConflict();
+// Get an instance of the REST API client
+var client = new forcetk.Client('{!$Api.Session_ID}');
+// Get an account name and put it somewhere on the page
+client.query("SELECT count(id) FROM Case",function(response){
+    $j('#accountname').html(response.records[1].Name);
+});
+    });
+  </script>
+  <h1>Test REST API Without Proxy</h1>
+  <p>10 Accounts:</p>
+  <ul id="accountname">
+  </ul>
+</apex:page>

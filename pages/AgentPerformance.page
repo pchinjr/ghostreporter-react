@@ -1,0 +1,1499 @@
+<apex:page controller="AgentController_m2"  id="page1" readOnly="false" sidebar="true">
+ 
+    
+<style>
+    .well1{
+        background-color:'#33CC33';
+    }    
+    
+    .no-gutter > [class*='col-'] {
+        padding-right:50px;
+        padding-left:50px;
+        
+    }
+    
+    .saveButton {
+        width:500px;
+        padding-bottom:30px;
+    }
+    
+    .commentSaveButton {
+        width:340px;
+        margin: 0 auto;
+        padding-bottom:15px;
+    }
+    
+    .myActiveTab {
+        background-color: #00BCD4; 
+        color:white; 
+        background-image:none;
+    }
+    
+    .myInactiveTab {
+        background-color: #B2EBF2; 
+        color:black; 
+        background-image:none;
+    }
+    
+    .inputTable {
+        display:block;
+        width:400px;
+    }
+    
+    @media all {
+        .page-break { display: none; }
+    }
+    
+    @media print {
+        .page-break { display: block; page-break-before: always; }
+    }
+    
+    .printButton {
+        width: 300px;
+        padding-right: 65px; 
+        float: right; 
+    }
+    
+</style> 
+    
+   <!-- <apex:includeScript value="{!URLFOR($Resource.D3, '/d3.js')}" /> -->
+    <apex:styleSheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/jquery-2.1.3.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/js/bootstrap.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.BootStrap334, 'bootstrap-3.3.4-dist/css/bootstrap.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/knockout-3.3.0.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/globalize.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ChartJs, 'Lib/js/dx.chartjs.js')}" />
+
+    
+        <apex:form >
+            <div id="test" class="bs" style="height:100%;">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <ul class="list-group">
+                            <li class="list-group-item list-group-item-info">
+                                <div>
+                                    <apex:selectList value="{!selectedVal}" size="1">
+                                        <apex:actionSupport event="onchange" action="{!loadStats}" status="rerenderGraphs"/>
+                                        <apex:selectOptions value="{!AgentsList}" />
+                                    </apex:selectList>
+                                </div>
+                                <div>
+                                    <apex:selectList value="{!dateValue}" size="1">
+                                        <apex:actionSupport event="onchange" action="{!loadStats}" status="rerenderGraphs"/>
+                                        <apex:selectOptions value="{!DateList}" />
+                                    </apex:selectList>
+                                </div>
+                                <!-- Used to know when to rerender the graphs 
+                                <apex:actionStatus id="rerenderGraphs" onstop="drawGraphs();" /> -->
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-xs-4"></div>
+                    <div class="printButton">
+                        <!-- Split button -->
+                        <button type="button" class="btn btn-info btn-lg btn-block active" onClick="printDiv2();">Print</button>
+                    </div>
+                </div>
+                <div class="row fullheight" id="fullBody">
+           
+                    <div class="col-xs-6">
+                        <div id="printingParent">
+                            <apex:tabPanel switchType="server" selectedTab="lines" id="theTabPanel" tabClass="myActiveTab" inactiveTabClass="myInactiveTab">
+                            <div id="topOfChart"></div>
+                            <div id="topOfChart2"></div>
+                                <apex:tab label="Line Graph" name="lines" id="linesTab" onclick="DrawLines(); isLinesShown = true;">
+                                    <div class="panel panel-primary" id="chartParent">
+                                        <div id="panelHeading" class="panel-heading">Agent Metrics</div>
+                                        <div class="panel-body">
+                                            <div class="row">
+                                                <table class="table table-hover table-condensed table-striped table-bordered" style="width: 60%; cellspacing=0; cellpadding=0 ">
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <!-- This is CPD --> 
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <apex:outputText value="{0, number, 0.00}" >
+                                                                                <apex:param value="{!curCPD}"/>
+                                                                            </apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <apex:outputText value="{0, number, 0.00}">
+                                                                                <apex:param value="{!prevCPD}"/>
+                                                                            </apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="OverallContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is AHT -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <!-- <apex:outputText value="{0, number, 0.00}" >
+                                                                                <apex:param value="{!curAHT}"/>
+                                                                            </apex:outputText> -->
+                                                                            <apex:outputText value=" {!curAHT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <!-- <apex:outputText value="{0, number, 0.00}" >
+                                                                                <apex:param value="{!prevAHT}"/>
+                                                                            </apex:outputText> -->
+                                                                            <apex:outputText value=" {!prevAHT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="AHTContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is HT -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                           <!-- <apex:outputText value="{0, number, 0.00}" >
+                                                                                <apex:param value="{!curHT}"/>
+                                                                            </apex:outputText>
+                                                                            % -->
+                                                                            <apex:outputText value=" {!curHT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <!-- <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevHT}"/>
+                                                                            </apex:outputText>
+                                                                            %  -->
+                                                                            <apex:outputText value=" {!prevHT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="HoldContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is CO7M -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!curCO7M}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevCO7M}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="SevenPlusContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is QBPA -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!curQBPA}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevQBPA}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="BPAContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is QERR -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!curQERR}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevQERR}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="ErrorContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is FUT -->
+                                                    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score:  
+                                                                            <!-- <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!curFUT}"/>
+                                                                            </apex:outputText>
+                                                                            % -->
+                                                                            <apex:outputText value=" {!curFUT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <!-- <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevFUT}"/>
+                                                                            </apex:outputText>
+                                                                            % -->
+                                                                            <apex:outputText value=" {!prevFUT_TF}"></apex:outputText>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="FollowUpContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr>
+                                                    <!-- This is SA -->
+                                                <!--    <tr>
+                                                        <div class="row">
+                                                            <div class="no-gutter">
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#0044CC; font-size:20px">
+                                                                        <span style="align:left; font-size:20px">
+                                                                            Current Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!curSA}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-xs-6 no-gutter">
+                                                                    <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true" style="color:#3E8C8C;font-size:20px">
+                                                                        <span style="align:right; font-size:20px">
+                                                                            Prior Score: 
+                                                                            <apex:outputText value="{0, number, 0.0}" >
+                                                                                <apex:param value="{!prevSA}"/>
+                                                                            </apex:outputText>
+                                                                            %
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </tr>
+                                                    <tr>
+                                                        <div class="First-Line">
+                                                            <div id="AdheranceContainer" class="Container"></div>
+                                                        </div>
+                                                    </tr> -->
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </apex:tab>
+                                <apex:tab label="Charts" name="charts" id="chartsTab" ontabenter="DrawChart(); isChartShown = true;">
+                                        
+                                    <div id="container2">
+                                             
+                                     <div class="row">
+                                        <div class="row">
+                                                <div class="col-xs-6 no-gutter">    
+                                                    <div id="chart"  ></div>
+                                                    <center>
+                                                        <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                                    </center>
+                                                </div>      
+                                                <div class="col-xs-6 no-gutter">    
+                                                  <div id="chart_ht"  ></div>
+                                                    <center>
+                                                        <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                                    </center>
+                                                </div>   
+                                                         
+                                        </div>                                        
+                        
+         
+                                   <div class="row">
+                                        <div class="col-xs-6 no-gutter">    
+                                         <div id="chart_co7m"  ></div>
+                                        <center>
+                                            <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                        </center>
+                                        </div>
+                                         <div class="col-xs-6 no-gutter"> 
+                                           <div id="chart_bpa"  ></div>
+                                            <center>
+                                                <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                            </center>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-xs-6 no-gutter">
+                                        <div id="chart_qerr"  ></div>
+                                        <center>
+                                            <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                        </center>
+                                      </div>
+                                      <div class="col-xs-6 no-gutter">
+                                        <div id="chart_aht"  ></div>
+                                        <center>
+                                            <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                        </center>
+                                       </div>
+    
+                                      </div>
+                                   
+                                    <div class="row">
+                                    <div id="container3"  >
+                                        <div id="aht"></div>
+                                        <center>
+                                            <div style="display: inline-block; vertical-align: middle"></div>&nbsp;<div style="display: inline-block; vertical-align: middle" id="types"></div>
+                                        </center>
+                                    </div>
+                                 </div>
+                                </div>
+                             
+                                </div>
+                                </apex:tab>
+                            </apex:tabPanel>
+                        <div id="emptyDiv"></div>
+                        </div>
+                    </div>
+                           
+                    <!-------------------------------------- Tables ----------------------------------------- -->
+                        <div class="col-xs-6" style="background-color:white">
+                            <div class="panel panel-primary" id="parentHolder">
+                                <div class="panel-heading" id="placeHolder">Agent Statistics</div>
+                                <div class="panel-body" id="commentParent">
+                                    <div> 
+                                        <div id="table" style="float:left">
+                                            <div id="tableTop">   </div>
+                                           
+                                            <apex:dataTable id="fullTable" value="{!StatList}" var="u" styleClass="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                                <apex:column value="{!u.statName}" headerValue="Statistic"></apex:column>
+                                                <apex:column value="{!u.rank}" headerValue="Percentile Rank" ></apex:column>
+                                                <apex:column value=" {! if(u.timeFormatted==True,  u.currDoubleFormattedValue, u.curMonthValue )}" headerValue="Current Month" style="background-color:{!u.curColor}"></apex:column>
+                                                <apex:column value="{! if(u.timeFormatted==True,   u.prevDoubleFormattedValue, u.prevMonthValue )} " headerValue="Previous Month" style="background-color:{!u.prevColor}"></apex:column>
+                                                <apex:column value="{! if(u.timeFormatted==True, u.avgFormattedValue, u.avg )} "  headerValue="Yearly Average" style="background-color:{!u.avgColor}"></apex:column>
+                                                
+                                                <apex:column headerValue="Metric Reviewed?">
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_CPD__c}" rendered="{!u.statName='Contacts Per Day'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_EHT__c}" rendered="{!u.statName='Avg Email Handle Time'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_AHT__c}" rendered="{!u.statName='Average Call Handle Time'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_HT__c}" rendered="{!u.statName='Hold Time Percent'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_CO7M__c}" rendered="{!u.statName='Calls Over 7 Minutes Percent'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_QBPA__c}" rendered="{!u.statName='Quality Score BPA'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_QEP__c}" rendered="{!u.statName='Quality Email %'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_QERR__c}" rendered="{!u.statName='Quality Error Rate'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_FUT__c}" rendered="{!u.statName='Follow Up Time Percent'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_SA__c}" rendered="{!u.statName='Schedule Adherence Percent'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_COMM__c}" rendered="{!u.statName='Performance Journal Feedback'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_DEP__c}" rendered="{!u.statName='Dependability'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_TW__c}" rendered="{!u.statName='Teamwork'}" />
+                                                   <apex:inputCheckbox value="{!curAgent.RVW_OT__c}" rendered="{!u.statName='Other Time'}" />
+                                                </apex:column>
+                                           <apex:column headerValue="Manual Metrics">
+                                                   <apex:inputField value="{!curAgent.Schedule_Adherence_Percent__c}" rendered="{!u.statName='Schedule Adherence Percent'}" />
+                                                   <apex:inputField value="{!curAgent.Communication_with_Sup__c}" rendered="{!u.statName='Performance Journal Feedback'}" />
+                                                   <apex:inputField value="{!curAgent.Teamwork__c}" rendered="{!u.statName='Teamwork'}" />
+                                                   <apex:inputField value="{!curAgent.Dependability__c}" rendered="{!u.statName='Dependability'}" />
+                                           </apex:column>
+                                   
+                                   
+                                            </apex:dataTable>
+                                            <div id="tableBottom"></div>
+                                            <div id="doubleBottom"></div>
+                                        </div>
+                                    
+                                        <span class="label label-primary btn-lg"></span> 
+                                    
+                                        <div class="saveButton">
+                                        
+                                                  
+                                                   <table class="btn btn-info  btn-lg active"><tr><td>Email Agent: </td><td><apex:inputCheckbox value="{!curAgent.IsEmailAgent__c}"  /></td></tr></table>
+                                               
+    
+                                          <apex:commandButton styleClass="btn btn-info btn-block active" value="Save" action="{!save}" />
+       
+                                            
+                                        </div>
+                                    </div>
+                                    <div style="width:340px">
+                                        <span>
+                                        <div>
+                                        <div style="float:left">
+                                            <table id="total_table" class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <apex:outputLabel value="Current Mo. Total Pts: "/>
+                                                        </td>
+                                                        <td style="background-color:{!totBackground}">
+                                                            <apex:outputText value="{0, number, 0.00}">
+                                                                <apex:param value="{!curTotal}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div style="float:right">
+                                            <table id="total_table2" class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <apex:outputLabel value="YTD Total Pts: "/>
+                                                        </td>
+                                                        <td style="background-color:{!totAvgBackground}">
+                                                            <apex:outputText value="{0, number, 0.00}">
+                                                                <apex:param value="{!avgTotal}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        </div>
+                                        </span>
+                                        <table class="table small right-text table-nonfluid2 table-condensed table-hover table-bordered table-curved table table-striped">
+                                            <tbody>
+                                                <!-- Proper colors can be found on ColorCode.cls -->
+                                                <tr>
+                                                    <!-- Red -->
+                                                    <td style="background-color:#F44336">Unsatisfactory</td>
+                                                    <!-- <td>0 to 25</td> -->
+                                                </tr>
+                                                <tr>
+                                                    <!-- Yellow -->
+                                                    <td style="background-color:#FFEB3B">Needs Improvement</td>
+                                                    <!-- <td>25 to 49</td> -->
+                                                </tr>
+                                                <tr>
+                                                    <!-- Purple -->
+                                                    <td style="background-color:#BA68C8">Good</td>
+                                                    <!-- <td>50 to 69</td> -->
+                                                </tr>
+                                                <tr>
+                                                    <!-- Blue -->
+                                                    <td style="background-color:#2196F3">Superior</td>
+                                                    <!-- <td>70 to 84</td> -->
+                                                </tr>
+                                                <tr>
+                                                    <!-- Green -->
+                                                    <td style="background-color:#4CAF50">Outstanding</td>
+                                                    <!-- <td>85 to 100</td> -->
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="tab-pane content" data-spy="scroll" id="report">
+                                        <div style="float: right; width: 100%; cellspacing=0; cellpadding=0">
+                                            <div id="ltable_div" style="float: right; width: 100%; cellspacing=0; cellpadding=0"></div>
+                                            <div id="table_div" style="float: right; width: 100%; cellspacing=0; cellpadding=0"></div>
+                                            <table class="table table-striped" id="ltable_div"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Comment Section --> 
+                        <div class="col-xs-6">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">Supervisor Comments</div>
+                                <div class="panel-body" id="comments">
+                                    <apex:inputField value="{!curAgent.Supervisor_comments__c}"/>
+                                    <!-- <apex:inputField value="{!curAgent.Comments_notFormatted__c}" /> -->
+                                </div>
+                                <div class="commentSaveButton">
+                                    <apex:commandButton styleClass="btn btn-info btn-block active" value="Save" action="{!save}"/>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </apex:form>
+
+
+        <script>
+        var j$ = jQuery.noConflict();
+        var unSatColor = "#F44336"; 
+        var nIColor = "#FFEB3B"; 
+        var goodColor = "#BA68C8"; 
+        var supColor = "#2196F3"; 
+        var outStandColor = "#4CAF50";
+
+        function scaleValue(maxValue, minValue, actValue) {
+            if (actValue > maxValue) {
+                return maxValue + ((actValue - maxValue) *0.1);
+            } else if (actValue < minValue) {
+                return minValue - ((minValue - actValue) *0.1);
+            } else {
+                return actValue;
+            }
+        }
+        
+        //Chart data
+        var dataSource = [{
+            month: 'August',
+            cpd: {!augCPD},
+            aht: {!augAHT},
+            ht: {!augHT},
+            co7m: {!augCO7M},
+            qbpa: {!augQBPA},
+            qerr: {!augQERR},
+            rvwCPD: {!augRVW_CPD},
+            rvwHT: {!augRVW_HT},
+            rvwAHT: {!augRVW_AHT},    
+            rvwCO7M: {!augRVW_CO7M}, 
+            rvwCOMM: {!augRVW_COMM},    
+            rvwDEP: {!augRVW_DEP},  
+            rvwFUT: {!augRVW_FUT},   
+            rvwQBPA: {!augRVW_QBPA},    
+            rvwQERR: {!augRVW_QERR},    
+            rvwSA: {!augRVW_SA},   
+            rvwTW: {!augRVW_TW} 
+            
+        }, {
+            month: 'September',
+            cpd: {!sepCPD},
+            aht: {!sepAHT},
+            ht: {!sepHT},
+            co7m: {!sepCO7M},
+            qbpa: {!sepQBPA},
+            qerr: {!sepQERR},
+            rvwCPD: {!sepRVW_CPD},
+            rvwHT: {!sepRVW_HT},
+            rvwAHT: {!sepRVW_AHT},    
+            rvwCO7M: {!sepRVW_CO7M}, 
+            rvwCOMM: {!sepRVW_COMM},    
+            rvwDEP: {!sepRVW_DEP},  
+            rvwFUT: {!sepRVW_FUT},   
+            rvwQBPA: {!sepRVW_QBPA},    
+            rvwQERR: {!sepRVW_QERR},    
+            rvwSA: {!sepRVW_SA},   
+            rvwTW: {!sepRVW_TW}
+            
+        }, {
+            month: 'October',
+            cpd: {!octCPD},
+            aht: {!octAHT},
+            ht: {!octHT},
+            co7m: {!octCO7M},
+            qbpa: {!octQBPA},
+            qerr: {!octQERR},
+            rvwCPD: {!octRVW_CPD},
+            rvwHT: {!octRVW_HT},
+            rvwAHT: {!octRVW_AHT},    
+            rvwCO7M: {!octRVW_CO7M}, 
+            rvwCOMM: {!octRVW_COMM},    
+            rvwDEP: {!octRVW_DEP},  
+            rvwFUT: {!octRVW_FUT},   
+            rvwQBPA: {!octRVW_QBPA},    
+            rvwQERR: {!octRVW_QERR},    
+            rvwSA: {!octRVW_SA},   
+            rvwTW: {!octRVW_TW}
+        }, {
+            month: 'November',
+            cpd: {!novCPD},
+            aht: {!novAHT},
+            ht: {!novHT},
+            co7m: {!novCO7M},
+            qbpa: {!novQBPA},
+            qerr: {!novQERR},
+            rvwCPD: {!novRVW_CPD},
+            rvwHT: {!novRVW_HT},
+            rvwAHT: {!novRVW_AHT},    
+            rvwCO7M: {!novRVW_CO7M}, 
+            rvwCOMM: {!novRVW_COMM},    
+            rvwDEP: {!novRVW_DEP},  
+            rvwFUT: {!novRVW_FUT},   
+            rvwQBPA: {!novRVW_QBPA},    
+            rvwQERR: {!novRVW_QERR},    
+            rvwSA: {!novRVW_SA},   
+            rvwTW: {!novRVW_TW}
+        }, {
+            month: 'December',
+            cpd: {!decCPD},
+            aht: {!decAHT},
+            ht: {!decHT},
+            co7m: {!decCO7M},
+            qbpa: {!decQBPA},
+            qerr: {!decQERR},
+            rvwCPD: {!decRVW_CPD},
+            rvwHT: {!decRVW_HT},
+            rvwAHT: {!decRVW_AHT},    
+            rvwCO7M: {!decRVW_CO7M}, 
+            rvwCOMM: {!decRVW_COMM},    
+            rvwDEP: {!decRVW_DEP},  
+            rvwFUT: {!decRVW_FUT},   
+            rvwQBPA: {!decRVW_QBPA},    
+            rvwQERR: {!decRVW_QERR},    
+            rvwSA: {!decRVW_SA},   
+            rvwTW: {!decRVW_TW}
+        }, {
+            month: 'January',
+            cpd: {!janCPD},
+            aht: {!janAHT},
+            ht: {!janHT},
+            co7m: {!janCO7M},
+            qbpa: {!janQBPA},
+            qerr: {!janQERR},
+            rvwCPD: {!janRVW_CPD},
+            rvwHT: {!janRVW_HT},
+            rvwAHT: {!janRVW_AHT},    
+            rvwCO7M: {!janRVW_CO7M}, 
+            rvwCOMM: {!janRVW_COMM},    
+            rvwDEP: {!janRVW_DEP},  
+            rvwFUT: {!janRVW_FUT},   
+            rvwQBPA: {!janRVW_QBPA},    
+            rvwQERR: {!janRVW_QERR},    
+            rvwSA: {!janRVW_SA},   
+            rvwTW: {!janRVW_TW}
+        },{
+            month: 'February',
+            cpd: {!febCPD},
+            aht: {!febAHT},
+            ht: {!febHT},
+            co7m: {!febCO7M},
+            qbpa: {!febQBPA},
+            qerr: {!febQERR},
+            rvwCPD: {!febRVW_CPD},
+            rvwHT: {!febRVW_HT},
+            rvwAHT: {!febRVW_AHT},    
+            rvwCO7M: {!febRVW_CO7M}, 
+            rvwCOMM: {!febRVW_COMM},    
+            rvwDEP: {!febRVW_DEP},  
+            rvwFUT: {!febRVW_FUT},   
+            rvwQBPA: {!febRVW_QBPA},    
+            rvwQERR: {!febRVW_QERR},    
+            rvwSA: {!febRVW_SA},   
+            rvwTW: {!febRVW_TW}
+        },{
+            month: 'March',
+            cpd: {!marCPD},
+            aht: {!marAHT},
+            ht: {!marHT},
+            co7m: {!marCO7M},
+            qbpa: {!marQBPA},
+            qerr: {!marQERR},
+            rvwCPD: {!marRVW_CPD},
+            rvwHT: {!marRVW_HT},
+            rvwAHT: {!marRVW_AHT},    
+            rvwCO7M: {!marRVW_CO7M}, 
+            rvwCOMM: {!marRVW_COMM},    
+            rvwDEP: {!marRVW_DEP},  
+            rvwFUT: {!marRVW_FUT},   
+            rvwQBPA: {!marRVW_QBPA},    
+            rvwQERR: {!marRVW_QERR},    
+            rvwSA: {!marRVW_SA},   
+            rvwTW: {!marRVW_TW}
+        },{
+            month: 'April',
+            cpd: {!aprCPD},
+            aht: {!aprAHT},
+            ht: {!aprHT},
+            co7m: {!aprCO7M},
+            qbpa: {!aprQBPA},
+            qerr: {!aprQERR},
+            rvwCPD: {!aprRVW_CPD},
+            rvwHT: {!aprRVW_HT},
+            rvwAHT: {!aprRVW_AHT},    
+            rvwCO7M: {!aprRVW_CO7M}, 
+            rvwCOMM: {!aprRVW_COMM},    
+            rvwDEP: {!aprRVW_DEP},  
+            rvwFUT: {!aprRVW_FUT},   
+            rvwQBPA: {!aprRVW_QBPA},    
+            rvwQERR: {!aprRVW_QERR},    
+            rvwSA: {!aprRVW_SA},   
+            rvwTW: {!aprRVW_TW}
+        },{
+            month: 'May',
+            cpd: {!mayCPD},
+            aht: {!mayAHT},
+            ht: {!mayHT},
+            co7m: {!mayCO7M},
+            qbpa: {!mayQBPA},
+            qerr: {!mayQERR},
+            rvwCPD: {!mayRVW_CPD},
+            rvwHT: {!mayRVW_HT},
+            rvwAHT: {!mayRVW_AHT},    
+            rvwCO7M: {!mayRVW_CO7M}, 
+            rvwCOMM: {!mayRVW_COMM},    
+            rvwDEP: {!mayRVW_DEP},  
+            rvwFUT: {!mayRVW_FUT},   
+            rvwQBPA: {!mayRVW_QBPA},    
+            rvwQERR: {!mayRVW_QERR},    
+            rvwSA: {!mayRVW_SA},   
+            rvwTW: {!mayRVW_TW}
+        },{
+            month: 'June',
+            cpd: {!junCPD},
+            aht: {!junAHT},
+            ht: {!junHT},
+            co7m: {!junCO7M},
+            qbpa: {!junQBPA},
+            qerr: {!junQERR},
+            rvwCPD: {!junRVW_CPD},
+            rvwHT: {!junRVW_HT},
+            rvwAHT: {!junRVW_AHT},    
+            rvwCO7M: {!junRVW_CO7M}, 
+            rvwCOMM: {!junRVW_COMM},    
+            rvwDEP: {!junRVW_DEP},  
+            rvwFUT: {!junRVW_FUT},   
+            rvwQBPA: {!junRVW_QBPA},    
+            rvwQERR: {!junRVW_QERR},    
+            rvwSA: {!junRVW_SA},   
+            rvwTW: {!junRVW_TW}
+        },{
+            month: 'July',
+            cpd: {!julCPD},
+            aht: {!julAHT},
+            ht: {!julHT},
+            co7m: {!julCO7M},
+            qbpa: {!julQBPA},
+            qerr: {!julQERR},
+            rvwCPD: {!julRVW_CPD},
+            rvwHT: {!julRVW_HT},
+            rvwAHT: {!julRVW_AHT},    
+            rvwCO7M: {!julRVW_CO7M}, 
+            rvwCOMM: {!julRVW_COMM},    
+            rvwDEP: {!julRVW_DEP},  
+            rvwFUT: {!julRVW_FUT},   
+            rvwQBPA: {!julRVW_QBPA},    
+            rvwQERR: {!julRVW_QERR},    
+            rvwSA: {!julRVW_SA},   
+            rvwTW: {!julRVW_TW}
+        }];
+        
+        var types = ["spline", "stackedSpline", "fullStackedSpline"];
+        
+        //Setting line chart variables in global space to see if this will help in ajax reload. 
+        var agent = {
+            curCpd : {!curCPD},
+            prevCpd : {!prevCPD},
+            curAht : {!curAHT},
+            prevAht : {!prevAHT},
+            curHt : {!curHT},
+            precHt : {!prevHT},
+            curCo7m : {!curCO7M},
+            prevCo7m : {!prevCO7M},
+            curQbpa : {!curQBPA},
+            prevQbpa : {!prevQBPA},
+            curQerr : {!if(isnull(curQERR),0,curQERR)},
+            prevQerr : {!prevQERR},
+            curFut : {!curFUT},
+            prevFut : {!prevFUT}
+        };
+        
+        //On Page load
+        j$(function() {
+            
+            drawGraphs();
+            
+        });
+        
+        function drawGraphs() {
+            //List in filled in controller in order: 0 QBPA, 1 CPD, 2 ACHT, 3 HT, 4 CO7M, 5 QERR, 6 SA, 7 FUT
+            //createLineChart(divId, title, nps, nvalue, value2, barStart, barEnd, afterText, unSatStart, unsatEnd, niStart, niEnd, gStart, gEnd, supStart, supEnd, outStart, outEnd, customTickArray)
+            createLineChart('OverallContainer', 'Contacts Per Day Handled(CPD)', '33', scaleValue(100, 70, {!curCPD}), scaleValue(100, 70, {!prevCPD}), 59, 110, '', 59, 70, 70, 80, 80, 90, 90, 100, 100, 110, [70, 80, 90, 100]);
+            createLineChart('AHTContainer', 'Average Handle Time (MM:SS)', '33', scaleValue(275, 235, {!curAHT}), scaleValue(275, 235, {!prevAHT}), 285, 225, '', 285, 275, 275, 261, 261, 245, 245, 235, 235, 225, [275, 261, 245, 235]);
+            createLineChart('HoldContainer', 'Hold Time(Minutes Per Day)', '33', scaleValue(45, 23, {!curHT} / 60), scaleValue(45, 23, {!prevHT} / 60), 50, 18, '', 50, 45, 45, 36, 36, 32, 32, 23, 23, 18, [ 45, 36, 32, 23]);
+            createLineChart('SevenPlusContainer', 'Calls Over 7 Minutes(% of calls, Based on 85 CPD)', '33',scaleValue(18, 11, {!curCO7M}), scaleValue(18, 11, {!prevCO7M}), 20, 8, '%', 20, 18, 18, 16, 16, 14, 14, 11, 11, 8, [ 18, 16, 14, 11]);
+            createLineChart('BPAContainer', 'Quality (BPA % score)', '33', scaleValue(90, 70, {!curQBPA}), scaleValue(90, 70, {!prevQBPA}), 65, 100, '%', 65, 70, 70, 75, 75, 85, 85, 90, 90, 100, [ 70, 75, 85,90,100]);
+            createLineChart('ErrorContainer', 'Quality (Error Rate - % score)', '33', scaleValue(90, 70,  {!if(isnull(curQERR),0,curQERR)}), scaleValue(90, 70, {!prevQERR}), 65, 100, '%', 65, 70, 70, 75, 75, 85, 85, 90, 90, 100, [ 70, 75, 85,90,100]);
+            createLineChart('FollowUpContainer', 'Follow-up time(Minutes Per Day)', '33', scaleValue(45, 23, {!curFUT} / 60), scaleValue(45, 23, {!prevFUT} / 60), 50, 18, '', 50, 45, 45, 36, 36, 32, 32, 23, 23, 18,  [45, 36, 32,  23]);
+            //createLineChart('AdheranceContainer', 'Schedule Adherance (WFM % score)', '33', scaleValue(100, 86, {!curSA}), scaleValue(100, 86, {!prevSA}), 84, 100, '%', 84, 86, 86, 90, 90, 93, 93, 96, 96, 100, [100, 96, 93, 90, 86]);
+            
+            
+            
+            //Configure new chart content here
+            var json = [{
+                "id" : "1", 
+                "Title"   : "Call Quality",
+                "valField" : "qbpa",
+                "name_s" : "QBPA",
+                "format" : "decimal",
+                "divid" : "chart_bpa", 
+                "postText": ""
+            },
+            {
+                "id" : "2", 
+                "Title"   : "Calls Over 7 Minutes",
+                "valField" : "co7m",
+                "name_s" : "CO7M",
+                "format" : "percent",
+                "divid" : "chart_co7m", 
+                "postText": "%"
+            },
+            
+            {
+                "id" : "3", 
+                "Title"   : "Contacts Per Day",
+                "valField" : "cpd",
+                "name_s" : "CPD",
+                "format" : "decimal",
+                "divid" : "chart", 
+                "postText": ""
+            },
+            
+            {
+                "id" : "4", 
+                "Title"   : "Quality Error Rate",
+                "valField" : "qerr",
+                "name_s" : "QERR",
+                "format" : "percent",
+                "divid" : "chart_qerr", 
+                "postText": "%"
+                
+            },
+            
+            {
+                "id" : "5", 
+                "Title"   : "Average Handle Time",
+                "valField" : "aht",
+                "name_s" : "AHT",
+                "format" : "shortTime",
+                "divid" : "chart_aht", 
+                "postText": ""
+                
+            },
+               {
+                "id" : "6", 
+                "Title"   : "Hold Time",
+                "valField" : "ht",
+                "name_s" : "HT",
+                "format" : "shortTime",
+                "divid" : "chart_ht", 
+                "postText": "%"
+                
+            }];
+            
+            //Loop through all chart types and render
+            for (var key in json) {
+                   if (json.hasOwnProperty(key)) {
+                     DrawChart_G(json[key].divid, json[key].Title,  dataSource, json[key].format,2, json[key].postText, [{valueField:  json[key].valField, name: json[key].name_s}]);
+                   }
+            }
+            
+            
+
+            /*
+            , {
+                valueField: "co7m",
+                name: "CO7M"
+            }, {
+                valueField: "qbpa",
+                name: "QBPA"
+            }, {
+                valueField: "qerr",
+                name: "QERR"
+            }
+            */
+        }
+        
+        function createLineChart(divId, title, nps, nvalue, value2, barStart, barEnd, afterText,
+            unSatStart, unsatEnd, niStart, niEnd, gStart, gEnd, supStart, supEnd, outStart, outEnd,
+            customTickArray) {
+            j$("#" + divId).dxLinearGauge({
+                scale: {
+                    startValue: barStart,
+                    endValue: barEnd,
+                    minerTickInterval: 0,
+                    majorTickInterval: 12,
+                    label: {
+                        indentFromTick: 7,
+                        customizeText: function() {
+                            if (divId == "AHTContainer"){
+                                return toMMSS(this.valueText) + afterText;
+                            } else {
+                                return this.valueText + afterText;
+                            }
+                            
+                        }
+                    },
+                    majorTick: {
+                        showCalculatedTicks: false,
+                        customTickValues: customTickArray,
+                        color: "#000"
+                    }
+                },
+        
+                title: {
+                    text: title,
+                    font: {
+                        color: '#000',
+                        weight: 700,
+                        size: 15
+                    }
+                },
+        
+                rangeContainer: {
+                    backgroundColor: "white",
+                    ranges: [{
+                            startValue: unSatStart,
+                            endValue: unsatEnd,
+                            color: unSatColor
+                        }, {
+                            startValue: niStart,
+                            endValue: niEnd,
+                            color: nIColor
+                        }, {
+                            startValue: gStart,
+                            endValue: gEnd,
+                            color: goodColor
+                        }, {
+                            startValue: supStart,
+                            endValue: supEnd,
+                            color: supColor
+                        },
+        
+                        {
+                            startValue: outStart,
+                            endValue: outEnd,
+                            color: outStandColor
+                        }
+                    ]
+                },
+        
+                needles: [{
+                    value: nps,
+                    color: "#000"
+                }],
+                markers: [{
+                    value: nps,
+                    color: "#000"
+                }],
+                subvalueIndicator: {
+                    length: 13,
+                    width: 23,
+                    type: 'triangleMarker',
+                    color: '#3E8C8C'
+                },
+        
+        
+                value: nvalue,
+                subvalues: [value2],
+                valueIndicator: {
+                    length: 13,
+                    width: 23,
+                    type: 'triangleMarker',
+                    color: '#0044CC'
+                }
+        
+            });
+        }
+        
+         function DrawChart_G(divId, title, dataSource, style, precision, postText, seriesNameValuePairArray) { 
+            
+            var chartOptions = {
+                dataSource: dataSource,
+
+                commonSeriesSettings: {
+                    type: types[0],
+                    argumentField: "month"
+                },
+                commonAxisSettings: {
+                    grid: {
+                        visible: true
+                    }
+                },
+                
+
+            
+                customizePoint: function(point) {
+                    var index = point.index;
+                    if (dataSource[index].rvwCPD == true  && divId=="chart") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    } 
+                    if(dataSource[index].rvwHT == true  && divId=="chart_ht") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    } 
+                    if(dataSource[index].rvwAHT == true  && divId=="chart_aht") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    }
+                    if(dataSource[index].rvwCO7M == true  && divId=="chart_co7m") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    }
+                    if(dataSource[index].rvwQBPA == true  && divId=="chart_bpa") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    }
+                     if(dataSource[index].rvwQERR == true  && divId=="chart_qerr") {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    }
+     
+
+                },
+                
+                margin: {
+                    left: 20,
+                    right: 20,
+                    bottom: 20
+                },
+                series: seriesNameValuePairArray,
+                tooltip:{
+                    enabled: true,
+                    customizeTooltip: function () {
+                        var text;
+                        if(style == "shortTime") {
+                            text = toMMSS(this.valueText);    
+                        } else if (style == "percent") {
+                            text = this.valueText+"%";
+                        } else {
+                            text = this.valueText;
+                        }
+                            
+                    return { 
+                        text: text
+                    };
+                }
+                },
+                legend: {
+                    visible: false
+                },
+                valueAxis: {
+                    label: {
+                        format: style,
+                        precision: precision,
+                        customizeText: function (e) {
+                           
+                           if (style == "shortTime") {
+                               return toMMSS(e.value); 
+                           } else if (style == "percent") {
+                               return e.value +"%";
+                           }
+                           return e.value+postText;
+                           /*if (mill) {
+                                return e.value + ' mm.ss'
+                            } else if (divId == "chart2") {
+                                  return e.value + '%'; 
+                            } else {
+                                return e.value; 
+                            }*/
+                            
+                        }
+                    }
+                },
+                legend: {
+                    verticalAlignment: "top",
+                    horizontalAlignment: "right"
+                },
+                title: title,
+                redrawOnResize: true
+            };
+            var chart = j$("#"+divId).dxChart(chartOptions).dxChart("instance");
+        }
+        
+        
+        function toMMSS (seconds) {
+            var sec_num = seconds;
+            var minutes = Math.floor(sec_num / 60);
+            var seconds = Math.floor(sec_num % 60);
+            
+            if (minutes < 10) {minutes = "0"+minutes;}
+            if (seconds < 10) {seconds = "0"+seconds;}
+            var time    = minutes+':'+seconds;
+            return time;
+        }
+        
+         function DrawChart_CO7M(divId, title, dataSource, postText, precision, mill, seriesNameValuePairArray) { 
+            var chartOptions = {
+                dataSource: dataSource,
+                commonSeriesSettings: {
+                    type: types[0],
+                    argumentField: "month"
+                },
+                commonAxisSettings: {
+                    grid: {
+                        visible: true
+                    }
+                },
+                customizePoint: function(point) {
+                    var index = point.index;
+                    if (dataSource[index].rvwCPD == true) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 50, height: 50 }, visible: true };
+                    } else if(this.value == 2) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-silver.png', width: 20, height: 20 }, visible: true };
+                    } else if(this.value == 3) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-bronse.png', width: 20, height: 20 }, visible: true };
+                    }
+                },
+                
+                margin: {
+                    bottom: 20
+                },
+                series: seriesNameValuePairArray,
+                tooltip:{
+                    enabled: true
+                },
+                legend: {
+                    visible: false
+                },
+                valueAxis: {
+                    label: {
+                        format: postText,
+                        precision: precision,
+                        customizeText: function (e) {
+                            if (mill) {
+                                return e.value + ' mm.ss'
+                            } else if (divId == "chart2") {
+                                  return e.value + '%'; 
+                            } else {
+                                return e.value; 
+                            }
+                            
+                        }
+                    }
+                },
+                legend: {
+                    verticalAlignment: "top",
+                    horizontalAlignment: "right"
+                },
+                title: title,
+                redrawOnResize: true
+            };
+            var chart = j$("#"+divId).dxChart(chartOptions).dxChart("instance");
+        }
+        
+        function DrawChart_HT(divId, title, dataSource, postText, precision, mill, seriesNameValuePairArray) { 
+            var chartOptions = {
+                dataSource: dataSource,
+                commonSeriesSettings: {
+                    type: types[0],
+                    argumentField: "month"
+                },
+                commonAxisSettings: {
+                    grid: {
+                        visible: true
+                    }
+                },
+                customizePoint: function(point) {
+                    var index = point.index;
+                    if (dataSource[index].rvwCPD == true) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 10, height: 10 }, visible: true };
+                    } else if(this.value == 2) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-silver.png', width: 20, height: 20 }, visible: true };
+                    } else if(this.value == 3) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-bronse.png', width: 20, height: 20 }, visible: true };
+                    }
+                },
+                
+                margin: {
+                    bottom: 20
+                },
+                series: seriesNameValuePairArray,
+                tooltip:{
+                    enabled: true
+                },
+                legend: {
+                    visible: false
+                },
+                valueAxis: {
+                    label: {
+                        format: postText,
+                        precision: precision,
+                        customizeText: function (e) {
+                            if (mill) {
+                                return e.value + ' mm.ss'
+                            } else if (divId == "chart2") {
+                                  return e.value + '%'; 
+                            } else {
+                                return e.value; 
+                            }
+                            
+                        }
+                    }
+                },
+                legend: {
+                    verticalAlignment: "top",
+                    horizontalAlignment: "right"
+                },
+                title: title,
+                redrawOnResize: true
+            };
+            var chart = j$("#"+divId).dxChart(chartOptions).dxChart("instance");
+        }
+        
+        function DrawChart2(divId, title, dataSource, postText, precision, mill, seriesNameValuePairArray) { 
+            var chartOptions = {
+                dataSource: dataSource,
+                commonSeriesSettings: {
+                    type: types[0],
+                    argumentField: "month"
+                },
+                commonAxisSettings: {
+                    grid: {
+                        visible: true
+                    }
+                },
+                customizePoint: function(point) {
+                    var index = point.index;
+                    if (dataSource[index].rvwCPD == true) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 50, height: 50 }, visible: true };
+                    } else if(this.value == 2) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-silver.png', width: 20, height: 20 }, visible: true };
+                    } else if(this.value == 3) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-bronse.png', width: 20, height: 20 }, visible: true };
+                    }
+                },
+                
+                margin: {
+                    bottom: 20
+                },
+                series: seriesNameValuePairArray,
+                tooltip:{
+                    enabled: true
+                },
+                legend: {
+                    visible: false
+                },
+                valueAxis: {
+                    label: {
+                        format: postText,
+                        precision: precision,
+                        customizeText: function (e) {
+                            if (mill) {
+                                return e.value + ' mm.ss'
+                            } else if (divId == "chart2") {
+                                  return e.value + '%'; 
+                            } else {
+                                return e.value; 
+                            }
+                            
+                        }
+                    }
+                },
+                legend: {
+                    verticalAlignment: "top",
+                    horizontalAlignment: "right"
+                },
+                title: title,
+                redrawOnResize: true
+            };
+            var chart = j$("#"+divId).dxChart(chartOptions).dxChart("instance");
+        }
+        
+        
+        
+        function DrawChart(divId, title, dataSource, postText, precision, mill, seriesNameValuePairArray) { 
+            var chartOptions = {
+                dataSource: dataSource,
+                commonSeriesSettings: {
+                    type: types[0],
+                    argumentField: "month"
+                },
+                commonAxisSettings: {
+                    grid: {
+                        visible: true
+                    }
+                },
+                customizePoint: function() {
+                    if(this.value == 50) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-gold.png', width: 20, height: 20 }, visible: true };
+                    } else if(this.value == 2) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-silver.png', width: 20, height: 20 }, visible: true };
+                    } else if(this.value == 3) {
+                        return { image: { url: 'http://js.devexpress.com/Demos/WidgetsGallery/images/icon-medal-bronse.png', width: 20, height: 20 }, visible: true };
+                    }
+                    },
+                
+                margin: {
+                    bottom: 20
+                },
+                series: seriesNameValuePairArray,
+                tooltip:{
+                    enabled: true
+                },
+                legend: {
+                    visible: false
+                },
+                valueAxis: {
+                    label: {
+                        format: postText,
+                        precision: precision,
+                        customizeText: function (e) {
+                            if (mill) {
+                                return e.value + ' mm.ss'
+                            } else if (divId == "chart2") {
+                                  return e.value + '%'; 
+                            } else {
+                                return e.value; 
+                            }
+                            
+                        }
+                    }
+                },
+                legend: {
+                    verticalAlignment: "top",
+                    horizontalAlignment: "right"
+                },
+                title: title,
+                redrawOnResize: true
+            };
+            var chart = j$("#"+divId).dxChart(chartOptions).dxChart("instance");
+        }    
+        
+        function printDiv2() {
+            
+            /**
+             * Attach table underneath chart so that it does not try to print them side by side, 
+             * then make new body html the div of chart + table. 
+             * Then try to print in duplex mode to split up into two pages. 
+             */
+            
+             //need original Contents so that it can be replaced when printing is done. 
+             var originalContents = document.body.innerHTML;
+        
+             var nameDiv = document.createElement("div"); 
+             nameDiv.style.fontSize = "40px";
+             nameDiv.style.font = "bold";
+             var name = document.createTextNode("{!curAgent.Team__c}, {!curAgent.Name__c}  {!curMonth} {!curYear}"); 
+             nameDiv.appendChild(name); 
+             
+             var tableDiv = document.createElement("div"); 
+             tableDiv.style.width = 1500+"px";
+             tableDiv.style.height = 100+"px";
+             var content = document.getElementById("table"); 
+             tableDiv.appendChild(content); 
+             
+             var pBreak = document.createElement("p");
+
+             // var mainTotalDiv = document.createElement("div");
+             // mainTotalDiv.style.width = 1000+"px";
+
+             // var totalTableDiv = document.createElement("div");
+             // //totalTableDiv.style.width = 500+"px"
+             // totalTableDiv.style.float = "left";
+             // var totalContent = document.getElementById("total_table2");
+             // totalTableDiv.appendChild(totalContent)
+
+             var curMonthTableDiv = document.createElement("div");
+             curMonthTableDiv.style.float = "left";
+             curMonthTableDiv.style.width = 500+"px";
+             var curMonthTotal = document.getElementById("total_table");
+             curMonthTableDiv.appendChild(curMonthTotal);
+
+             // mainTotalDiv.appendChild(totalTableDiv);
+             // mainTotalDiv.appendChild(curMonthTableDiv);
+             
+             var parentDiv = document.getElementById("printingParent"); 
+             var toPlaceTableAbove = document.getElementById("topOfChart2"); 
+             var toPlaceNameAbove = document.getElementById("topOfChart"); 
+             
+             parentDiv.insertBefore(nameDiv, toPlaceNameAbove);
+             parentDiv.insertBefore(tableDiv, toPlaceTableAbove);
+             //parentDiv.insertBefore(totalTableDiv, toPlaceTableAbove);
+             parentDiv.insertBefore(pBreak, toPlaceTableAbove);
+             parentDiv.insertBefore(curMonthTableDiv, toPlaceTableAbove);
+             
+             var printContents = document.getElementById("printingParent").innerHTML;
+        
+             document.body.innerHTML = printContents;
+             document.body.style.backgroundColor = "white";
+        
+             window.print();
+        
+             document.body.innerHTML = originalContents;
+             //location.reload(); 
+             window.location = window.location.href;
+        }
+            
+
+    </script>
+ 
+</apex:page>

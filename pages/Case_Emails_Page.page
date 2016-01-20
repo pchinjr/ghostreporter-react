@@ -1,0 +1,39 @@
+<apex:page standardController="Case"  extensions="CurrentCase">
+        <style type="text/css">
+        body {background: #F3F3EC; padding-top: 15px}
+    </style>
+    
+    <apex:form >
+    <apex:pageBlock title="Case Emails" >
+        <apex:commandButton value="Send an Email" action="{!newEmail}" />
+        <apex:commandButton value="Reply All" action="{!replyAll}" />
+        
+        <apex:dataTable id="tbl2" value="{!emails}" var="u" cellspacing="15px" width="800px" style="padding-left: 0px; align:'center';right-text; width:800px" styleClass="centered-text  left table table-condensed table-hover table-bordered table table-striped">
+                                        
+         <!--    <apex:column ><apex:outputlink target="_blank" value="https://cs15.salesforce.com/_ui/core/email/author/EmailAuthor?email_id={!u.id}&replyToAll=0&&template_id=00Xe0000000RRCW&retURL=%{!caseid}"> Reply1</apex:outputlink>  </apex:column>
+                                 
+            <apex:column ><apex:outputlink target="_blank" value="location.replace('/email/author/emailauthor.jsp?retURL={!caseid} &rtype=003&p2_lkid={!caseid}&p24_lkid=myname@emailaddress.com&template_id=00Xe0000000RRCW');"> Reply2</apex:outputlink>  </apex:column>       -->   
+
+            <!-- <apex:column ><apex:commandButton value="Send an Email" action="{!newEmail}" /></apex:column>
+            <apex:column ><apex:commandButton value="Reply All" action="{!replyAll}" /></apex:column>    -->                     
+            <apex:column value="{!u.MessageDate}" headerValue="Date"   />
+            <apex:column value="{!u.status}" headerValue="Status"   />
+            <apex:column value="{!u.fromAddress}" headerValue="From"   />
+            <apex:column value="{!u.ToAddress}" headerValue="To" />
+            <apex:column value="{!u.Subject}" style="width:600px" headerValue="Subject"/>
+        
+                                          
+        </apex:dataTable>         
+  
+    <apex:pageBlockSection >
+          
+          
+
+          
+          
+
+            
+    </apex:pageBlockSection>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

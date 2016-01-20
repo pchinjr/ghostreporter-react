@@ -1,0 +1,100 @@
+<apex:page controller="PredictionAPI_Controller">
+	<html>
+	  <head>
+	    <meta charset='utf-8' />
+	  </head>
+	  <body>
+	    <!--Add a button for the user to click to initiate auth sequence -->
+	    <button id="authorize-button" style="visibility: hidden">Authorize</button>
+	    <script type="text/javascript">
+	      var clientId = '39155115276-k3lkg04usma17a79o0a5cc7t4se2uhdu.apps.googleusercontent.com';
+	
+	      var apiKey = 'AIzaSyAXNOOPm2XjkXCEUX7t2wuHa8VIwmYSx84';
+	
+	      var scopes = ['https://www.googleapis.com/auth/plus.me','https://www.googleapis.com/auth/prediction'];
+		  
+		  
+		  
+	      // Use a button to handle authentication the first time.
+	      function handleClientLoad() {
+	        gapi.client.setApiKey(apiKey);
+	        window.setTimeout(checkAuth,1);
+              
+	      }
+          
+          
+	
+	      function checkAuth() {
+	        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
+	      }
+	
+	      function handleAuthResult(authResult) {
+	        var authorizeButton = document.getElementById('authorize-button');
+              //console.log(authResult);
+	        if (authResult && !authResult.error) {
+	          authorizeButton.style.visibility = 'hidden';
+	          makeApiCall();
+	        } else {
+	          authorizeButton.style.visibility = '';
+	          authorizeButton.onclick = handleAuthClick;
+	        }
+	      }
+	
+	      function handleAuthClick(event) {
+	        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthResult);
+	        return false;
+	      }
+	
+	      // Load the API and make an API call.  Display the results on the screen.
+	      function makeApiCall() {
+	        var sentiments = {!sentiments}; 
+	        gapi.client.load('prediction','v1.6', function() {
+	        	for (var j = 0; j < sentiments.length; j++) {    
+	        	
+		        	// must loop through entire process for each query
+		        	var inputObject = new Object(); 
+		        	sentiments = {!sentiments};   
+		        	inputObject.csvInstance = [sentiments[j]];
+		        	updateSentDescription(sentiments[j]);
+					console.log(sentiments[j]);
+					
+		        	var request = gapi.client.prediction.trainedmodels.predict({
+		        		'project': '39155115276',
+		        		'id': 'sentiments',
+		        		"input": inputObject
+		        	});
+		        	
+		        	request.execute(function(resp) {
+		   
+		        		var analysis_String = '';
+		        		
+		        		for (var i = 0; i < resp.outputMulti.length; i++) {
+		        			
+		        			analysis_String += resp.outputMulti[i].label+" Score: "+Math.round(resp.outputMulti[i].score*10000)/100+"%\n";
+
+		        		}
+		      
+		        		//console.log(analysis_String);
+		        		console.log({!Sent_Description});
+		        		updateSentiment(analysis_String);
+		        		
+		        		//content.appendChild(out_OL);
+		        	});
+		        }
+	        }); 
+	    } 
+	    </script>
+	    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+	    <div id="content"></div>
+	    <p></p>
+	    <apex:form >
+		    <apex:actionFunction name="updateSentiment" action="{!Sentiment_Update}" rerender="">
+		    	<apex:param name="firstparam" assignTo="{!Sent_Analysis}" value="" />
+		    </apex:actionFunction>
+		    <apex:actionFunction name="updateSentDescription" action="{!Sentiment_Description_Update}" rerender="">
+		    	<apex:param name="firstparam" assignTo="{!Sent_Description}" value="" />
+		    </apex:actionFunction>
+	  	</apex:form>
+	  </body>
+	</html>
+</apex:page>

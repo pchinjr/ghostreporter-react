@@ -1,0 +1,165 @@
+<apex:page controller="Launchpad_Controller" sidebar="false">
+	<style>
+	
+	<!-- Styling settings -->
+    .col1 {width:230px; text-align:center;}
+    .col2 {width:700px; text-align:center;}
+    .col3 {width:220px; text-align:center;}       
+    .col4 {width:43%; text-align:center; align-self:center;}
+    .col5 {width:100%;  text-align:center;}
+    .col6 {width:200px;}
+    .row1 {height: 50px;}
+	
+	.startButton {
+		width:150px;
+		height:30px;
+	}
+	.startButtonForm {
+		text-align:center;
+	    position:relative;
+	    background-color: darkgreen;
+	    left:45%;
+	    top:40px;
+	    width:152px;
+	    height:32px;
+	    box-shadow:0px 0px 3px 1px darkgreen; 
+	    z-index:2;
+	}
+
+	#content,#sidebar {
+	    line-height: normal;
+	    text-align: center;
+	    border: 1px solid;
+	}
+	 
+	#sidebar {
+	    background-color: #DEF;
+	    border-color: #BCD;
+	    display: none;
+	}
+	#content {
+	    background-color: #EFE;
+	    border-color: #CDC;
+	    width: 98%;
+	}
+	 
+	.use-sidebar #content {width: 78%;}
+	.use-sidebar #sidebar {
+	    display: block;
+	    width: 20%;
+	}
+	
+	.sidebar-at-left #sidebar {margin-right: 0%;}
+	.sidebar-at-right #sidebar {margin-left: 0%;}
+	 
+	.sidebar-at-left #content, .use-sidebar.sidebar-at-right #sidebar, .sidebar-at-right #separator {float: right;}
+	.sidebar-at-right #content, .use-sidebar.sidebar-at-left #sidebar, .sidebar-at-left #separator {float: left;}
+	 
+	#separator {
+		background-image:url('{!URLFOR($Resource.vertlinerev, '')}');
+	    background-color: white;
+	    background-repeat: no-repeat;
+	    background-position: right center;
+	    display: block;
+	    outline: none;
+	    width: 14px;
+	    height:56px;
+	    opacity:0.5;
+	}
+	.use-sidebar #separator {
+		background-image:url('{!URLFOR($Resource.vertline, '')}');
+	    border-right-width:0px;
+	    border-color: #FFF;
+	}
+	#separator:hover {
+	    opacity:1.0;
+	}
+</style>
+	<script src="{!URLFOR($Resource.jquery, '')}"></script>
+	<script src="{!URLFOR($Resource.jquerycookie, '')}"></script>
+	<script>
+	$j = jQuery.noConflict();
+	
+	$j(document).ready(function(){
+	    // Variables
+	    var objMain = $j('#main');
+	 
+	    // Show sidebar
+	    function showSidebar(){
+	        objMain.addClass('use-sidebar');
+	        $j.cookie('sidebar-pref2', 'use-sidebar', { expires: 30 });
+	    }
+	 
+	    // Hide sidebar
+	    function hideSidebar(){
+	        objMain.removeClass('use-sidebar');
+	        $j.cookie('sidebar-pref2', null, { expires: 30 });
+	    }
+	 
+	    // Sidebar separator
+	    var objSeparator = $j('#separator');
+	 
+	    objSeparator.click(function(e){
+	        e.preventDefault();
+	        if ( objMain.hasClass('use-sidebar') ){
+	            hideSidebar();
+	        }
+	        else {
+	            showSidebar();
+	        }
+	    }).css('height', objSeparator.parent().outerHeight() + 'px');
+	 
+	    // Load preference
+	    if ( $j.cookie('sidebar-pref2') == null ){
+	        objMain.removeClass('use-sidebar');
+	    }
+	});
+	</script>
+	
+	<div class="use-sidebar sidebar-at-right" id="main">	
+	    <div id="content">
+	    	<apex:outputPanel >	
+		        <apex:panelGrid id="grid1" columns="3" columnClasses="col4" rowClasses="row1" border="0" cellpadding="1" cellspacing="1">
+		        	<apex:panelGrid id="grid4" columns="1">
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="High Priority Cases:"/>
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="{!highPriority}"/>
+		        	</apex:panelGrid>
+		        	<apex:panelGrid id="grid5" columns="1">
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="Medium Priority Cases:"/>
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="{!medPriority}"/>
+		        	</apex:panelGrid>
+		        	<apex:panelGrid id="grid6" columns="1">
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="Low Priority Cases:"/>
+		        		<apex:outputText style="font-weight:bold; font-size:large;" value="{!lowPriority}"/>
+		        	</apex:panelGrid>
+		        </apex:panelGrid>
+	        </apex:outputPanel>
+            
+            <apex:outputPanel id="lists" styleClass="#content" layout="block">
+	            <!-- Relevant lists -->
+	            <!--  <apex:enhancedList id="mycases" listid="00Bi0000001do8U"  height="270" rowsPerPage="200" customizable="false"/>   -->
+	        
+	            <!-- utility buttons --> 
+	            <apex:form styleClass="startButtonForm">
+					<apex:commandButton title="Open an unworked case" value="Start an unassigned case" action="{!findNextCaseUnassigned}" styleClass="startButton"/>
+				</apex:form>  
+				
+	             <apex:enhancedList id="caseQueue" type="Case" height="570" rowsPerPage="200" customizable="false"/> <!-- listid="00Be0000000S6jf" -->
+ 			 
+ 			 </apex:outputPanel>
+		</div>
+		
+	    <div id="sidebar"> 
+	    	<apex:enhancedList id="Activities" listid="00Bi0000001do8a" height="650" customizable="true" rendered="true"/>
+	    </div>
+	    
+	    <apex:form > 
+	    	<apex:outputpanel title="Hide events window">
+	    		<apex:actionSupport event="onclick" reRender="lists"/>
+			    <a href="#" id="separator"></a>
+			    <div style="width: 14px; height:56px;" class="clearer">&nbsp;</div>
+	    	</apex:outputpanel>
+	    </apex:form>
+	    
+	</div>
+</apex:page>

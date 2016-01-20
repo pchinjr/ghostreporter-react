@@ -1,0 +1,110 @@
+<apex:page showHeader="true" sidebar="true" controller="CRTEmailPageController">
+
+
+	<style type="text/css">
+		html * {
+			font-size: 20px !important;
+		}
+	</style>
+
+	<apex:form id="main_form">
+		<!-- Pageblock with send and cancel and attach file button. -->
+		<apex:pageBlock id="email_setup_block" title="Send Email">
+			<apex:pageMessages />
+			<apex:pageBlockSection title="Edit Email" columns="1">
+
+				<!-- From select list -->
+				<apex:selectList id="from_select" value="{!fromAddress}" 
+					label="From: " size="1">
+					<apex:selectOptions value="{!FromList}"/>
+				</apex:selectList>
+				<!-- <p></p> -->
+
+				<!-- To lookup field-->
+				<apex:outputField id="to_address" value="{!relatedCase.SuppliedEmail}"
+					label="To: "/>
+				<!-- <p></p> -->
+
+				<!-- Related to  -->
+				<!-- Get parameters from page that should have been passed in from 
+					 previous page. If they were not then use some default values. -->
+				<apex:outputField id="related_to" value="{!relatedCase.CaseNumber}" 
+					label="Case Number: "/>
+				<!-- <p></p> -->
+
+			  	<!-- Additional To lookup field. -->
+			  	<apex:inputTextarea id="additional_to" value="{!additionalTo}" 
+			  		label="Additional To:" cols="50" rows="5"/>
+			  	<!-- <p></p> -->
+
+			  	<!-- cc lookup field -->
+			  	<!-- <apex:selectList id="cc_select" value="{!ccList}" label="CC: "
+			  		multiselect="true" size="5">
+			  		<apex:selectOptions value="{!recipientList}" />
+			  	</apex:selectList> -->
+			  	<apex:inputTextarea id="cc_string" value="{!ccString}" 
+			  		label="CC:" cols="50" rows="5"/>
+			  	
+			  	<!-- BCC lookup field -->
+			  	<!-- <apex:selectList id="bcc_select" value="{!bccList}" label="BCC: "
+			  		multiselect="true" size="5">
+			  		<apex:selectOptions value="{!recipientList}" />
+			  	</apex:selectList> -->
+			  	<apex:inputTextarea id="bcc_string" value="{!bccString}" 
+			  		label="BCC:" cols="50" rows="5"/>
+
+			  	<!-- Subject input text box -->
+			  	<apex:inputTextarea id="email_subject" value="{!emailSubject}" 
+			  		label="Subject: " cols="75"/>
+
+			  	<!-- Body input text -->
+			  	<apex:inputTextarea id="email_body" value="{!emailBody}"
+			  		label="Body: " cols="75" rows="15" />
+
+			  	<!-- <apex:outputPanel layout="block" 
+			  		style="overflow:auto;width:750px;height:300px;padding-left:330px;" >
+			  		<apex:outputLabel value="History" for="email_history" />
+			  		<apex:inputText id="email_history" value="{!emailHistory}" 
+			  			escape="false" style="color:'white'" label="History"/>
+			  	</apex:outputPanel> -->
+			  	<apex:inputTextarea value="{!emailHistory}" label="History" 
+			  		cols="75" rows="15"/>
+
+		  	</apex:pageBlockSection>
+
+		  	<apex:pageBlockSection id="attach_files" title="Attach Files" columns="1">
+		  		<apex:inputFile id="file_attach" value="{!attachedBlob.body}" 
+		  			fileName="{!attachedBlob.name}"/>
+		  		<apex:panelGrid columns="2">
+			  		<!-- <apex:commandButton value="Attach" action="{!attachFile}" /> -->
+			  		<apex:commandButton value="Attach" onclick="attachFile(); 
+			  			return false;"/>
+			  		<apex:commandButton id="remove_attachments" 
+			  			action="{!removeAttachments}" value="Remove Attachmemts" />
+		  		</apex:panelGrid>
+		  		<apex:outputText id="attachedFiles" 
+		  			value="{!attachedFileNames}" />
+		  	</apex:pageBlockSection>
+
+		  	<apex:pageBlockButtons >
+		  		<apex:commandButton value="Send" onclick="sendEmail(); return false;"/>
+		  		<apex:commandButton value="Cancel" action="{!cancel}" />
+		  	</apex:pageBlockButtons>
+
+	  	</apex:pageBlock>
+
+	  	<apex:actionFunction action="{!insertDoc}" name="attach" />
+	  	<apex:actionFunction action="{!sendEmail}" name="send" />
+  	</apex:form>
+
+  	<script type="text/javascript">
+  		function attachFile() {
+  			attach();
+  		}
+
+  		function sendEmail() {
+  			send();
+  		}
+  	</script>
+	
+</apex:page>

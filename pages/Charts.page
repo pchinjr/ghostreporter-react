@@ -1,0 +1,50 @@
+<apex:page showHeader="true" sidebar="true" controller="ChartsController">
+	
+<apex:sectionHeader title="Visualforce Charts" subtitle="Charting examples 
+	using visualforce components" />
+	<apex:pageBlock title="Visualforce Charting Examples">
+		
+		<apex:pageBlockSection title="Case Count by FY">
+			<c:Chart_LineChart data="{!CaseCountFY}" 
+				leftTitle="Case Count" 
+			 	bottomTitle="Closed Date" />
+		</apex:pageBlockSection>
+
+			
+		<apex:pageBlockSection title="Average Age of CRT Closed Cases in Hours">
+			<c:Chart_LineChart data="{!AverageAgeOfClosedCases}" 
+				leftTitle="Average Case Age In Business Hours" 
+			 	bottomTitle="Closed Date" />
+		</apex:pageBlockSection>
+
+		<apex:pageBlockSection title="Average Age By Case Reason">
+			<c:Chart_BarChart data="{!AverageAgeByCaseReason}" 
+				leftTitle="Avg Handle In Hrs" bottomTitle="Case Reason" />
+		</apex:pageBlockSection>
+
+		<apex:pageBlockSection title="Total Closed CRT Case Count" >
+			<c:Chart_LineChart data="{!CaseClosedByMonth}" 
+				leftTitle="Record Count" bottomTitle="Closed Date" />
+		</apex:pageBlockSection>
+	
+		<apex:pageBlockSection title="Case Count By Reason">
+			<c:Chart_PieChart data="{!CaseCountByReason}" 
+				leftTitle="pointless" bottomTitle="pointLess" />
+		</apex:pageBlockSection>
+
+		<!-- More complex chart that can't be done with existing component -->
+		<apex:pageBlockSection title="Case Summary Count by Reason">
+			<apex:chart data="{!CaseReasonSplit}" animate="true"
+				height="400" width="700" >
+				<apex:legend position="left" />
+				<apex:axis type="Numeric" position="left" title="Record Count" 
+					grid="true" fields="reasonCount" dashSize="2" />
+				<apex:axis type="Category" position="bottom" fields="createdMonth"
+					title="CRT Review DT" />
+				<apex:barSeries orientation="vertical" axis="left" stacked="true"
+					xField="createdMonth" yField="reasonCount" 
+					title="reasonCount"/>
+			</apex:chart>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:page>

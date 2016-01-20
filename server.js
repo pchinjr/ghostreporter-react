@@ -24,45 +24,6 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.get('/api/ghosts', function(req, res) {
-  fs.readFile(GHOSTS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    res.setHeader('Cache-Control', 'no-cache');
-    res.json(JSON.parse(data));
-  });
-});
-
-app.post('/api/ghosts', function(req, res) {
-  fs.readFile(GHOSTS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    var ghosts = JSON.parse(data);
-    // NOTE: In a real implementation, we would likely rely on a database or
-    // some other approach (e.g. UUIDs) to ensure a globally unique id. We'll
-    // treat Date.now() as unique-enough for our purposes.
-    var newGhost = {
-      id: Date.now(),
-      name: req.body.name,
-      description: req.body.description,
-      photoUrl: req.body.photoUrl
-    };
-    ghosts.push(newGhost);
-    fs.writeFile(GHOSTS_FILE, JSON.stringify(ghosts, null, 4), function(err) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-      res.setHeader('Cache-Control', 'no-cache');
-      res.json(ghosts);
-    });
-  });
-});
-
 
 app.listen(app.get('port'), function() {
   console.log('Server started: http://localhost:' + app.get('port') + '/');

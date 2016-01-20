@@ -1,0 +1,92 @@
+<apex:page standardController="AgentStats__c">
+
+
+
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {'packages':['corechart', 'controls']});
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var dashboard = new google.visualization.Dashboard(
+          document.getElementById('programmatic_dashboard_div'));
+
+        // We omit "var" so that programmaticSlider is visible to changeRange.
+        programmaticSlider = new google.visualization.ControlWrapper({
+          'controlType': 'NumberRangeFilter',
+          'containerId': 'programmatic_control_div',
+          'options': {
+            'filterColumnLabel': 'Donuts eaten',
+            'ui': {'labelStacking': 'vertical'}
+          }
+        });
+
+       programmaticChart  = new google.visualization.ChartWrapper({
+        'chartType': 'PieChart',
+        'containerId': 'programmatic_chart_div',
+        'options': {
+          'width': 300,
+          'height': 300,
+          'legend': 'none',
+          'chartArea': {'left': 15, 'top': 15, 'right': 0, 'bottom': 0},
+          'pieSliceText': 'value'
+        }
+      });
+  
+  var data = new google.visualization.DataTable();
+
+// the table needs two columns
+data.addColumn('string', 'Type');
+data.addColumn('number', 'Score');
+
+// add the rows of data which consist of a value and a formatted label
+data.addRow(['call_mon', {v:{!AgentStats__c.call_mon__c}, f: formatCurrencyLabel({!AgentStats__c.call_mon__c})}]);
+data.addRow(['qm_errors', {v:{!AgentStats__c.qm_errors__c}, f: formatCurrencyLabel({!AgentStats__c.qm_errors__c})}]);
+
+
+      dashboard.bind(programmaticSlider, programmaticChart);
+      dashboard.draw(data);
+    }
+
+    </script>
+  </head>
+  <body>
+    <div id="programmatic_dashboard_div" style="border: 1px solid #ccc">
+      <table class="columns">
+        <tr>
+          <td>
+            <div id="programmatic_control_div" style="padding-left: 2em; min-width: 250px"></div>
+            <div>
+              <button style="margin: 1em 1em 1em 2em" onclick="changeRange();">
+                Select range [2, 5]
+              </button><br />
+              <button style="margin: 1em 1em 1em 2em" onclick="changeOptions();">
+                Make the pie chart 3D
+              </button>
+            </div>
+            <script type="text/javascript">
+              function changeRange() {
+                programmaticSlider.setState({'lowValue': 2, 'highValue': 5});
+                programmaticSlider.draw();
+              }
+
+              function changeOptions() {
+                programmaticChart.setOption('is3D', true);
+                programmaticChart.draw();
+              }
+            </script>
+          </td>
+          <td>
+            <div id="programmatic_chart_div"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+
+</apex:page>

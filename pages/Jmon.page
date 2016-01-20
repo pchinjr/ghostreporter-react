@@ -1,0 +1,19 @@
+<apex:page standardcontroller="JMon__c" tabStyle="Account">
+  <apex:form >
+    <apex:pageBlock title="Jitterbit Remote Control" id="out">
+        <apex:pageBlockButtons >
+            <apex:commandButton value="Save" action="{!save}"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="Select command to execute on VPC-SFINTG" collapsible="false">
+            <apex:selectList value="{!JMon__c.command__c}" multiselect="false" size="1">
+                <apex:selectOption itemValue="Restart Process" itemLabel="Restart Process"/>
+                <apex:selectOption itemValue="Restart Server" itemLabel="Restart Server"/>
+                
+            </apex:selectList>
+             
+            <apex:outputText value="{!JMon__c.command__c}" label="You have selected:"/>
+        </apex:pageBlockSection>
+
+    </apex:pageblock>
+  </apex:form>
+</apex:page>

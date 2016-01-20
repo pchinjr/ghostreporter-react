@@ -1,0 +1,64 @@
+<apex:component >
+<!-- 
+http://www.stoimen.com/blog/2011/03/29/scroll-an-iframe-content-to-a-predefined-position/
+ -->
+<apex:attribute name="reportId" description="Id of the report with a chart" type="String" required="true"/>
+<apex:attribute name="verticalOffset" default="505" description="Allows developer to position chart vertically (pixels)" type="Integer" required="false"/>
+<apex:attribute name="horizontalOffset" default="30" description="Allows developer to position chart horizontally (pixels)" type="Integer" required="false"/>
+<apex:attribute name="pv0" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv1" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv2" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv3" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv4" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv5" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv6" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv7" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv8" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv9" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv10" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv11" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv12" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv13" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv14" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv15" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv16" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv17" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv18" description="Filter value" type="String" required="false"/>
+<apex:attribute name="pv19" description="Filter value" type="String" required="false"/>
+
+	<style>
+		#reportDiv
+		{
+			background-color: white;
+		    width    : 490px;
+		    height   : 395px;
+		    overflow : hidden;
+		    position : relative;
+		}
+		 
+		#reportFrame
+		{
+		    position : absolute;
+		    top      : -{!verticalOffset}px;
+		    left     : -{!horizontalOffset}px;
+		    width    : 1280px;
+		    height   : 1200px;
+		}
+		
+		#reportOverlay
+		{
+		    cursor:pointer;
+		    position:absolute;
+		    top:0;
+		    left:0;
+		    right:0;
+		    bottom:0; 
+		    z-index:99;
+		}
+	</style>
+
+	<div id="reportOverlay" title="Open report in new tab..." onclick="window.open('','_new').location.href='/{!reportId}?pv0={!pv0}&pv1={!pv1}&pv2={!pv2}&pv3={!pv3}&pv4={!pv4}&pv5={!pv5}&pv6={!pv6}&pv7={!pv7}&pv8={!pv8}&pv9={!pv9}&pv10={!pv10}&pv11={!pv11}&pv12={!pv12}&pv13={!pv13}&pv14={!pv14}&pv15={!pv15}&pv16={!pv16}&pv17={!pv17}&pv18={!pv18}&pv19={!pv19}';" ></div>
+	<div id="reportDiv">
+		<iframe src="/{!reportId}?pv0={!pv0}&pv1={!pv1}&pv2={!pv2}&pv3={!pv3}&pv4={!pv4}&pv5={!pv5}&pv6={!pv6}&pv7={!pv7}&pv8={!pv8}&pv9={!pv9}&pv10={!pv10}&pv11={!pv11}&pv12={!pv12}&pv13={!pv13}&pv14={!pv14}&pv15={!pv15}&pv16={!pv16}&pv17={!pv17}&pv18={!pv18}&pv19={!pv19}" id="reportFrame" scrolling="no"></iframe>
+ 	</div>
+</apex:component>
